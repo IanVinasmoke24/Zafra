@@ -1154,11 +1154,130 @@ body {
 }
 
 /* Map canvas container */
+.map-canvas-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: #090e0c;
+}
+
+.map-canvas-container.is-fullscreen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 99999 !important;
+  border-radius: 0 !important;
+}
+
+.map-canvas-container.is-fullscreen #zafra-leaflet-map {
+  height: 100vh !important;
+}
+
 #zafra-leaflet-map {
   width: 100%;
-  height: 520px;
-  background: #090e0c;
+  height: 540px;
+  background: #080d0b;
   z-index: 1;
+  transition: height 0.3s ease;
+}
+
+/* Satellite Dark Night Mode Tone Matching User Image */
+#zafra-leaflet-map.satellite-dark-mode .leaflet-tile-pane {
+  filter: brightness(0.68) contrast(1.18) saturate(0.72) hue-rotate(195deg);
+}
+
+/* Fullscreen and Overlay Map Buttons (Matches User Screenshot) */
+.map-overlay-btn {
+  position: absolute;
+  z-index: 999;
+  background: rgba(13, 20, 16, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #f1f5f9;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.map-overlay-btn:hover {
+  background: #064e3b;
+  border-color: #22c55e;
+  color: #ffffff;
+  transform: scale(1.08);
+}
+
+.map-fullscreen-btn {
+  top: 14px;
+  right: 14px;
+}
+
+.map-overlay-info {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  z-index: 999;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(13, 20, 16, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Georgia, serif;
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.map-overlay-info:hover {
+  color: #ffffff;
+  border-color: #22c55e;
+}
+
+/* Map Style Layer Switcher (Top Left) */
+.map-style-switcher {
+  position: absolute;
+  top: 14px;
+  left: 54px;
+  z-index: 999;
+  display: flex;
+  background: rgba(13, 20, 16, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+  padding: 3px;
+  gap: 2px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.map-style-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.map-style-btn.active {
+  background: #22c55e;
+  color: #0b1f17;
+  font-weight: 700;
 }
 
 /* Custom Leaflet Dark Marker Pills */

@@ -36,9 +36,21 @@ class App {
     this.markersLayer = null;
     this.routeLineLayer = null;
 
+    const initialHash = window.location.hash.replace("#", "");
+    if (["inicio", "catalogo", "mapa", "ferias", "pedidos", "perfil"].includes(initialHash)) {
+      this.consumerTab = initialHash;
+    }
+    this.currentTileStyle = "satellite-dark";
+    this.currentTileLayer = null;
+    this.isMapFullscreen = false;
+
     this.initElements();
     this.bindEvents();
     this.render();
+
+    if (this.currentRole === "consumidor" && this.consumerTab === "mapa") {
+      setTimeout(() => this.setupLeafletMap(), 100);
+    }
   }
 
   initElements() {
@@ -58,6 +70,15 @@ class App {
       const chatMessages = document.querySelector(".chat-messages");
       if (chatMessages) {
         this.renderChatMessages(chatMessages);
+      }
+    });
+
+    window.addEventListener("hashchange", () => {
+      const hash = window.location.hash.replace("#", "");
+      if (["inicio", "catalogo", "mapa", "ferias", "pedidos", "perfil"].includes(hash)) {
+        if (this.currentRole === "consumidor" && this.consumerTab !== hash) {
+          this.setConsumerTab(hash, false);
+        }
       }
     });
   }
@@ -88,8 +109,11 @@ class App {
     }
   }
 
-  setConsumerTab(tab) {
+  setConsumerTab(tab, updateHash = true) {
     this.consumerTab = tab;
+    if (updateHash && window.location.hash !== `#${tab}`) {
+      window.location.hash = tab;
+    }
     this.render();
     if (tab === "mapa") {
       setTimeout(() => this.setupLeafletMap(), 60);
@@ -309,6 +333,25 @@ class App {
           </div>
         </div>
       </section>
+
+      <!-- Banner de Acceso Rápido a la Cartografía Satelital (API Activa) -->
+      <div style="background: linear-gradient(135deg, #09130e 0%, #0d1e16 100%); border: 1px solid #1f3d2e; border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: var(--shadow-xs);">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="width: 42px; height: 42px; border-radius: 50%; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.35); display: flex; align-items: center; justify-content: center; color: #22c55e; flex-shrink: 0;">
+            ${Icons.mapPin}
+          </div>
+          <div>
+            <div style="font-weight: 700; color: #ffffff; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+              <span>Cartografía Satelital Zafra · Estado de Morelos</span>
+              <span style="font-size: 0.68rem; background: #064e3b; color: #a7f3d0; border: 1px solid #059669; padding: 2px 7px; border-radius: 12px; font-weight: 600;">API Satelital Activa</span>
+            </div>
+            <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 2px;">Visualizador topográfico con las 6 rutas productivas, talleres y padrón de 15 municipios con estrellas de calificación.</div>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" id="home-goto-map-quick">
+          Abrir Mapa Satelital & Rutas ${Icons.chevronRight}
+        </button>
+      </div>
 
       <!-- KPI de Abastecimiento Directo -->
       <section class="program-kpi-strip">
@@ -561,57 +604,39 @@ class App {
         </div>
 
         <!-- Leaflet Map Canvas (Dark Satellite / CartoDB Dark Matter) -->
-        <div id="zafra-leaflet-map"></div>
+        <div class="map-canvas-container" id="map-canvas-wrapper">
+          <div id="zafra-leaflet-map" class="${this.currentTileStyle === 'satellite-dark' ? 'satellite-dark-mode' : ''}"></div>
 
-        <!-- Route Details Banner (Talleres, Productos, Ubicaciones) -->
-        ${activeRoute ? `
-          <div class="route-detail-banner">
-            <div>
-              <div class="route-banner-block-title" style="color: ${activeRoute.color};">
-                ${Icons.mapPin} ${activeRoute.name}
-              </div>
-              <div style="font-size: 0.82rem; color: #cbd5e1; margin-bottom: 6px; line-height: 1.4;">
-                ${activeRoute.description}
-              </div>
-              <div style="font-size: 0.74rem; color: #94a3b8;">
-                <strong>Sedes anfitrionas:</strong> ${activeRoute.locations.join(", ")}
-              </div>
-            </div>
+          <!-- Top-Right Fullscreen Expand Button matching Image -->
+          <button class="map-overlay-btn map-fullscreen-btn" id="map-fullscreen-toggle" title="Pantalla completa del mapa">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+            </svg>
+          </button>
 
-            <div>
-              <div class="route-banner-block-title">
-                ${Icons.calendar} Talleres que Imparte la Ruta
-              </div>
-              <div class="route-tags-flex">
-                ${activeRoute.workshops.map(w => `
-                  <span class="route-tag-pill" style="border-left: 2px solid ${activeRoute.color};">
-                    ${w}
-                  </span>
-                `).join("")}
-              </div>
-            </div>
-
-            <div>
-              <div class="route-banner-block-title">
-                ${Icons.packageIcon} Productos Característicos
-              </div>
-              <div class="route-tags-flex">
-                ${activeRoute.products.map(p => `
-                  <span class="route-tag-pill">
-                    ${p}
-                  </span>
-                `).join("")}
-              </div>
-            </div>
+          <!-- Top-Left Tile API Switcher -->
+          <div class="map-style-switcher" id="map-style-switcher">
+            <button class="map-style-btn ${this.currentTileStyle === 'satellite-dark' ? 'active' : ''}" data-style="satellite-dark">
+              <span>Satelital Nocturno</span>
+            </button>
+            <button class="map-style-btn ${this.currentTileStyle === 'carto-dark' ? 'active' : ''}" data-style="carto-dark">
+              <span>Dark Matter</span>
+            </button>
+            <button class="map-style-btn ${this.currentTileStyle === 'osm' ? 'active' : ''}" data-style="osm">
+              <span>Topográfico</span>
+            </button>
           </div>
-        ` : `
-          <div class="route-detail-banner" style="grid-template-columns: 1fr;">
-            <div style="font-size: 0.82rem; color: #94a3b8; display: flex; align-items: center; justify-content: space-between;">
-              <span>Selecciona una de las <strong>6 Rutas de Zafra</strong> en la barra superior para ver sus talleres formativos específicos y trazado en el mapa.</span>
-              <span style="color: #cbd5e1; font-size: 0.75rem;">* Ubicaciones sujetas a confirmación con productores anfitriones</span>
-            </div>
+
+          <!-- Bottom-Right Info Icon matching Image -->
+          <div class="map-overlay-info" id="map-info-toggle" title="Cartografía Oficial Zafra · ESRI Satellite / CartoDB / INEGI Morelos">
+            <span>i</span>
           </div>
-        `}
+        </div>
+
+        <!-- Route Details Banner Container -->
+        <div id="route-detail-banner-container">
+          ${this.renderRouteDetailBanner(activeRoute)}
+        </div>
 
         <!-- Dark Data Table Matching the User's Image -->
         <div class="dark-table-section">
@@ -703,12 +728,73 @@ class App {
     `;
   }
 
+  renderRouteDetailBanner(activeRoute) {
+    if (!activeRoute) {
+      return `
+        <div class="route-detail-banner" style="grid-template-columns: 1fr;">
+          <div style="font-size: 0.82rem; color: #94a3b8; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+            <span>Selecciona una de las <strong>6 Rutas de Zafra</strong> en la barra superior para ver sus talleres formativos específicos y trazado en el mapa.</span>
+            <span style="color: #cbd5e1; font-size: 0.75rem;">* Ubicaciones sujetas a confirmación con productores anfitriones</span>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="route-detail-banner">
+        <div>
+          <div class="route-banner-block-title" style="color: ${activeRoute.color};">
+            ${Icons.mapPin} ${activeRoute.name}
+          </div>
+          <div style="font-size: 0.82rem; color: #cbd5e1; margin-bottom: 6px; line-height: 1.4;">
+            ${activeRoute.description}
+          </div>
+          <div style="font-size: 0.74rem; color: #94a3b8;">
+            <strong>Sedes anfitrionas:</strong> ${activeRoute.locations.join(", ")}
+          </div>
+        </div>
+
+        <div>
+          <div class="route-banner-block-title">
+            ${Icons.calendar} Talleres que Imparte la Ruta
+          </div>
+          <div class="route-tags-flex">
+            ${activeRoute.workshops.map(w => `
+              <span class="route-tag-pill" style="border-left: 2px solid ${activeRoute.color};">
+                ${w}
+              </span>
+            `).join("")}
+          </div>
+        </div>
+
+        <div>
+          <div class="route-banner-block-title">
+            ${Icons.packageIcon} Productos Característicos
+          </div>
+          <div class="route-tags-flex">
+            ${activeRoute.products.map(p => `
+              <span class="route-tag-pill">
+                ${p}
+              </span>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   setupLeafletMap() {
     const mapEl = document.getElementById("zafra-leaflet-map");
     if (!mapEl) return;
 
     if (typeof L === "undefined") {
-      mapEl.innerHTML = `<div style="color: #94a3b8; padding: 40px; text-align: center;">Cargando visualizador satelital de Morelos...</div>`;
+      mapEl.innerHTML = `
+        <div style="color: #94a3b8; padding: 40px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+          <div style="font-weight: 600; font-size: 1rem; margin-bottom: 8px; color: #ffffff;">Conectando con la API Cartográfica de Morelos...</div>
+          <div style="font-size: 0.8rem; color: #64748b;">Descargando capas satelitales y vectoriales de la red Zafra.</div>
+        </div>
+      `;
+      setTimeout(() => this.setupLeafletMap(), 250);
       return;
     }
 
@@ -724,16 +810,69 @@ class App {
       attributionControl: false
     }).setView([18.80, -99.02], 10);
 
-    // CartoDB Dark Matter tile layer
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      maxZoom: 18,
-      subdomains: "abcd"
-    }).addTo(this.leafletMap);
+    this.setMapTileLayer(this.currentTileStyle || "satellite-dark");
 
     this.markersLayer = L.layerGroup().addTo(this.leafletMap);
     this.routeLineLayer = L.layerGroup().addTo(this.leafletMap);
 
     this.renderMapEntities();
+
+    // Critical Leaflet resize invalidation to prevent blank or clipped tiles
+    this.leafletMap.whenReady(() => {
+      this.leafletMap.invalidateSize();
+    });
+    setTimeout(() => {
+      if (this.leafletMap) this.leafletMap.invalidateSize();
+    }, 120);
+    setTimeout(() => {
+      if (this.leafletMap) this.leafletMap.invalidateSize();
+    }, 450);
+  }
+
+  setMapTileLayer(styleName) {
+    if (!this.leafletMap) return;
+    this.currentTileStyle = styleName;
+
+    if (this.currentTileLayer) {
+      this.leafletMap.removeLayer(this.currentTileLayer);
+      this.currentTileLayer = null;
+    }
+
+    const mapContainer = document.getElementById("zafra-leaflet-map");
+
+    if (styleName === "satellite-dark") {
+      if (mapContainer) mapContainer.classList.add("satellite-dark-mode");
+      this.currentTileLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+        maxZoom: 18,
+        attribution: "Esri Satellite Imagery"
+      });
+    } else if (styleName === "carto-dark") {
+      if (mapContainer) mapContainer.classList.remove("satellite-dark-mode");
+      this.currentTileLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 18,
+        subdomains: "abcd",
+        attribution: "CartoDB Dark Matter"
+      });
+    } else {
+      if (mapContainer) mapContainer.classList.remove("satellite-dark-mode");
+      this.currentTileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: "OpenStreetMap"
+      });
+    }
+
+    this.currentTileLayer.addTo(this.leafletMap);
+
+    this.currentTileLayer.on("tileerror", () => {
+      console.warn("Tile error on " + styleName + ", falling back to CartoDB Dark Matter.");
+      if (styleName !== "carto-dark") {
+        this.setMapTileLayer("carto-dark");
+      }
+    });
+
+    document.querySelectorAll("#map-style-switcher .map-style-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.style === styleName);
+    });
   }
 
   renderMapEntities() {
@@ -1450,39 +1589,89 @@ class App {
       });
     }
 
-    // Map Route Selector Pills
+    // Map Route Selector Pills (Smooth update without rebuilding map)
     this.appEl.querySelectorAll("#map-route-selector [data-route-id]").forEach(btn => {
       btn.addEventListener("click", () => {
         this.selectedRouteId = btn.dataset.routeId;
-        const container = document.getElementById("main-view");
-        if (container) container.innerHTML = this.renderConsumerMap();
-        this.bindRoleViewEvents();
-        setTimeout(() => this.setupLeafletMap(), 50);
-      });
-    });
+        
+        // Update pills visual state
+        this.appEl.querySelectorAll("#map-route-selector [data-route-id]").forEach(b => {
+          b.classList.toggle("active", b.dataset.routeId === this.selectedRouteId);
+        });
 
-    // Dark Map Table Row Clicks
-    this.appEl.querySelectorAll(".dark-table-row").forEach(row => {
-      row.addEventListener("click", () => {
-        const muniName = row.dataset.muni;
-        const municipalities = store.getMapMunicipalities();
-        const target = municipalities.find(m => m.name === muniName);
-        if (target && this.leafletMap) {
-          this.leafletMap.flyTo([target.lat, target.lng], 12, { duration: 0.8 });
-          this.showToast(`Enfocando municipio: ${target.name} (★ ${target.rating.toFixed(1)})`, "info");
+        // Update Route Details Banner
+        const routes = store.getZafraRoutes();
+        const activeRoute = this.selectedRouteId === "all" ? null : routes.find(r => r.id === this.selectedRouteId);
+        const bannerContainer = document.getElementById("route-detail-banner-container");
+        if (bannerContainer) {
+          bannerContainer.innerHTML = this.renderRouteDetailBanner(activeRoute);
+        }
+
+        // Smoothly update markers and polyline on existing map
+        if (this.leafletMap) {
+          this.renderMapEntities();
+          this.leafletMap.invalidateSize();
+        } else {
+          this.setupLeafletMap();
         }
       });
     });
+
+    // Map Style Switcher (Satelital Nocturno, Dark Matter, Topográfico)
+    this.appEl.querySelectorAll("#map-style-switcher [data-style]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const style = btn.dataset.style;
+        this.setMapTileLayer(style);
+        this.showToast(`Capa activa: ${style === 'satellite-dark' ? 'Satelital Nocturno' : style === 'carto-dark' ? 'Dark Matter' : 'Topográfico'}`, "info");
+      });
+    });
+
+    // Fullscreen Toggle
+    const fsBtn = document.getElementById("map-fullscreen-toggle");
+    if (fsBtn) {
+      fsBtn.addEventListener("click", () => {
+        const wrapper = document.getElementById("map-canvas-wrapper");
+        if (wrapper) {
+          this.isMapFullscreen = !this.isMapFullscreen;
+          wrapper.classList.toggle("is-fullscreen", this.isMapFullscreen);
+          document.body.style.overflow = this.isMapFullscreen ? "hidden" : "";
+          if (this.leafletMap) {
+            setTimeout(() => this.leafletMap.invalidateSize(), 150);
+          }
+        }
+      });
+    }
+
+    // Info overlay button
+    const infoBtn = document.getElementById("map-info-toggle");
+    if (infoBtn) {
+      infoBtn.addEventListener("click", () => {
+        this.showToast("API Satelital Zafra · Capas ESRI / CartoDB / OSM / INEGI Morelos", "info");
+      });
+    }
+
+    // Dark Map Table Row Clicks
+    this.bindDarkTableRowClicks();
 
     // Toggle Full Municipalities Table
     const toggleExpandBtn = document.getElementById("toggle-muni-expand-btn");
     if (toggleExpandBtn) {
       toggleExpandBtn.addEventListener("click", () => {
         this.showAllMunicipalities = !this.showAllMunicipalities;
-        const container = document.getElementById("main-view");
-        if (container) container.innerHTML = this.renderConsumerMap();
-        this.bindRoleViewEvents();
-        setTimeout(() => this.setupLeafletMap(), 50);
+        const municipalities = store.getMapMunicipalities();
+        const tbody = document.querySelector(".dark-products-table tbody");
+        if (tbody) {
+          tbody.innerHTML = (this.showAllMunicipalities ? municipalities : municipalities.slice(0, 15)).map(m => `
+            <tr class="dark-table-row" data-muni="${m.name}" style="cursor: pointer;" title="Hacer clic para enfocar en el mapa">
+              <td class="col-muni">${m.num}. ${m.name}</td>
+              <td class="col-prod">${m.productsSummary}</td>
+            </tr>
+          `).join("");
+          this.bindDarkTableRowClicks();
+        }
+        toggleExpandBtn.title = this.showAllMunicipalities ? "Ver solo los 15 prioritarios" : "Desplegar todos los municipios de las 6 rutas";
+        const svg = toggleExpandBtn.querySelector("svg");
+        if (svg) svg.style.transform = this.showAllMunicipalities ? "rotate(180deg)" : "none";
       });
     }
 
@@ -1565,6 +1754,25 @@ class App {
         this.showToast("Configuración guardada exitosamente.", "success");
       });
     }
+
+    const homeQuickMap = document.getElementById("home-goto-map-quick");
+    if (homeQuickMap) {
+      homeQuickMap.addEventListener("click", () => this.setConsumerTab("mapa"));
+    }
+  }
+
+  bindDarkTableRowClicks() {
+    this.appEl.querySelectorAll(".dark-table-row").forEach(row => {
+      row.addEventListener("click", () => {
+        const muniName = row.dataset.muni;
+        const municipalities = store.getMapMunicipalities();
+        const target = municipalities.find(m => m.name === muniName);
+        if (target && this.leafletMap) {
+          this.leafletMap.flyTo([target.lat, target.lng], 12, { duration: 0.8 });
+          this.showToast(`Enfocando municipio: ${target.name} (★ ${target.rating.toFixed(1)})`, "info");
+        }
+      });
+    });
   }
 
   // ==========================================================================
@@ -2029,6 +2237,14 @@ class App {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  window.app = new App();
-});
+function initZafraApp() {
+  if (!window.app) {
+    window.app = new App();
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initZafraApp);
+} else {
+  initZafraApp();
+}
