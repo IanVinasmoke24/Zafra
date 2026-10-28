@@ -79,8 +79,9 @@ body {
   flex-direction: column;
 }
 
-/* Offline Banner */
+/* Offline Banner (Hidden by default unless offline detected) */
 .offline-banner {
+  display: none !important;
   background: #0f172a;
   color: #f1f5f9;
   font-size: 0.8rem;
@@ -91,10 +92,17 @@ body {
   top: 0;
   z-index: 9999;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+
+.offline-banner.active {
+  display: flex !important;
+}
+
+[hidden], .offline-banner[hidden] {
+  display: none !important;
 }
 
 #app {

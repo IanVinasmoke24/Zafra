@@ -84,11 +84,16 @@ class App {
   }
 
   updateOnlineStatus() {
+    if (!this.offlineBanner) return;
     if (!navigator.onLine) {
       this.offlineBanner.hidden = false;
+      this.offlineBanner.classList.add("active");
+      this.offlineBanner.style.setProperty("display", "flex", "important");
       this.offlineBanner.innerHTML = `${Icons.shield} Modo local activo · Los registros se sincronizarán al restablecer la red institucional.`;
     } else {
       this.offlineBanner.hidden = true;
+      this.offlineBanner.classList.remove("active");
+      this.offlineBanner.style.setProperty("display", "none", "important");
     }
   }
 
