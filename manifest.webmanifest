@@ -1,0 +1,17 @@
+{
+  "name": "Zafra",
+  "short_name": "Zafra",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#064e3b",
+  "theme_color": "#064e3b",
+  "description": "Zafra: conectando al campo de Morelos con tu mesa sin intermediarios.",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
