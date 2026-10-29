@@ -753,149 +753,225 @@ const INITIAL_ADMIN_KPIS = {
   commissionRate: 10 // % para sostener logística y seguro estudiantil
 };
 
-// Store Wrapper
+const INITIAL_ORDERS = [
+  {
+    id: "PED-2026-081",
+    date: "Hoy, 10:15 am",
+    status: "en_camino", // confirmado -> en_cosecha -> en_camino -> entregado
+    deliveryType: "domicilio",
+    deliveryAddress: "Av. Insurgentes #45, Col. Emiliano Zapata, Cuautla",
+    assignedYouth: "Valeria Soto (Agronomía UAEM)",
+    youthPhone: "735-123-4567",
+    paymentMethod: "SPEI Transferencia",
+    items: [
+      { name: "Jitomate Riñón Criollo", qty: 2, price: 32, unit: "kg", producer: "Don Chente Gómez" },
+      { name: "Elote Blanco Tiernito", qty: 1, price: 65, unit: "docena", producer: "Familia Flores" },
+      { name: "Arroz Morelos D.O.", qty: 1, price: 52, unit: "kg", producer: "Molino San José" }
+    ],
+    subtotal: 181,
+    shippingCost: 25,
+    total: 206
+  }
+];
+
+const INITIAL_CHAT = [
+  { id: 1, sender: "Valeria (Repartidora)", role: "joven", text: "¡Hola doña Laura! Ya pasé a recoger los jitomates al rancho de don Chente. Voy en camino en mi bici hacia su domicilio.", time: "10:30 am" },
+  { id: 2, sender: "Laura Romero (Tú)", role: "consumidor", text: "¡Muchas gracias Valeria! Aquí te espero, tocar el zaguán negro por favor.", time: "10:32 am" },
+  { id: 3, sender: "Don Chente (Productor)", role: "productor", text: "Van bien frescos de la mata cortados hoy a las 6:30 am. ¡Que los disfruten!", time: "10:34 am" }
+];
+
+const INITIAL_USER_PROFILE = {
+  name: "Laura Patricia Romero",
+  email: "laura.romero@morelos.mx",
+  phone: "735-123-4567",
+  address: "Av. Insurgentes #45, Col. Emiliano Zapata",
+  municipality: "Cuautla",
+  references: "Casa de dos pisos con zaguán negro junto a la farmacia",
+  preferredTime: "Matutino (10:00 - 13:00 hrs)",
+  purchasesThisMonth: 3,
+  goalPurchases: 4,
+  loyaltyPoints: 340,
+  rewardActive: true,
+  rewardCoupon: "ENVIO-GRATIS-ZAFRA"
+};
+
+// Store Wrapper con tolerancia a fallos
 class DataStore {
   constructor() {
     this.init();
   }
 
   init() {
-    const DATA_VERSION = "zafra_v3_routes_map";
-    if (localStorage.getItem("rm_zafra_version") !== DATA_VERSION) {
-      localStorage.setItem("rm_zafra_routes", JSON.stringify(INITIAL_ZAFRA_ROUTES));
-      localStorage.setItem("rm_map_municipalities", JSON.stringify(INITIAL_MAP_MUNICIPALITIES));
-      localStorage.setItem("rm_zafra_fairs", JSON.stringify(INITIAL_ZAFRA_FAIRS));
-      localStorage.setItem("rm_regions", JSON.stringify(INITIAL_ZAFRA_ROUTES));
-      localStorage.setItem("rm_zafra_version", DATA_VERSION);
-    }
+    try {
+      const DATA_VERSION = "zafra_v3_routes_map";
+      if (localStorage.getItem("rm_zafra_version") !== DATA_VERSION) {
+        localStorage.setItem("rm_zafra_routes", JSON.stringify(INITIAL_ZAFRA_ROUTES));
+        localStorage.setItem("rm_map_municipalities", JSON.stringify(INITIAL_MAP_MUNICIPALITIES));
+        localStorage.setItem("rm_zafra_fairs", JSON.stringify(INITIAL_ZAFRA_FAIRS));
+        localStorage.setItem("rm_regions", JSON.stringify(INITIAL_ZAFRA_ROUTES));
+        localStorage.setItem("rm_zafra_version", DATA_VERSION);
+      }
 
-    if (!localStorage.getItem("rm_producers")) {
-      localStorage.setItem("rm_producers", JSON.stringify(INITIAL_PRODUCERS));
-    }
-    if (!localStorage.getItem("rm_products")) {
-      localStorage.setItem("rm_products", JSON.stringify(INITIAL_PRODUCTS));
-    }
-    if (!localStorage.getItem("rm_events")) {
-      localStorage.setItem("rm_events", JSON.stringify(INITIAL_EVENTS));
-    }
-    if (!localStorage.getItem("rm_youth")) {
-      localStorage.setItem("rm_youth", JSON.stringify(INITIAL_YOUTH_ROUTES));
-    }
-    if (!localStorage.getItem("rm_admin_kpis")) {
-      localStorage.setItem("rm_admin_kpis", JSON.stringify(INITIAL_ADMIN_KPIS));
-    }
-    if (!localStorage.getItem("rm_cart")) {
-      localStorage.setItem("rm_cart", JSON.stringify([]));
-    }
-    if (!localStorage.getItem("rm_consumer_orders")) {
-      localStorage.setItem("rm_consumer_orders", JSON.stringify([
-        {
-          id: "PED-2026-081",
-          date: "Hoy, 10:15 am",
-          status: "en_camino", // confirmado -> en_cosecha -> en_camino -> entregado
-          deliveryType: "domicilio",
-          deliveryAddress: "Av. Insurgentes #45, Col. Emiliano Zapata, Cuautla",
-          assignedYouth: "Valeria Soto (Agronomía UAEM)",
-          youthPhone: "735-123-4567",
-          paymentMethod: "SPEI Transferencia",
-          items: [
-            { name: "Jitomate Riñón Criollo", qty: 2, price: 32, unit: "kg", producer: "Don Chente Gómez" },
-            { name: "Elote Blanco Tiernito", qty: 1, price: 65, unit: "docena", producer: "Familia Flores" },
-            { name: "Arroz Morelos D.O.", qty: 1, price: 52, unit: "kg", producer: "Molino San José" }
-          ],
-          subtotal: 181,
-          shippingCost: 25,
-          total: 206
-        }
-      ]));
-    }
-    if (!localStorage.getItem("rm_chat")) {
-      localStorage.setItem("rm_chat", JSON.stringify([
-        { id: 1, sender: "Valeria (Repartidora)", role: "joven", text: "¡Hola doña Laura! Ya pasé a recoger los jitomates al rancho de don Chente. Voy en camino en mi bici hacia su domicilio.", time: "10:30 am" },
-        { id: 2, sender: "Laura Romero (Tú)", role: "consumidor", text: "¡Muchas gracias Valeria! Aquí te espero, tocar el zaguán negro por favor.", time: "10:32 am" },
-        { id: 3, sender: "Don Chente (Productor)", role: "productor", text: "Van bien frescos de la mata cortados hoy a las 6:30 am. ¡Que los disfruten!", time: "10:34 am" }
-      ]));
-    }
-    if (!localStorage.getItem("rm_user_profile")) {
-      localStorage.setItem("rm_user_profile", JSON.stringify({
-        name: "Laura Patricia Romero",
-        email: "laura.romero@morelos.mx",
-        phone: "735-123-4567",
-        address: "Av. Insurgentes #45, Col. Emiliano Zapata",
-        municipality: "Cuautla",
-        references: "Casa de dos pisos con zaguán negro junto a la farmacia",
-        preferredTime: "Matutino (10:00 - 13:00 hrs)",
-        purchasesThisMonth: 3,
-        goalPurchases: 4,
-        loyaltyPoints: 340,
-        rewardActive: true,
-        rewardCoupon: "ENVIO-GRATIS-ZAFRA"
-      }));
+      if (!localStorage.getItem("rm_producers")) {
+        localStorage.setItem("rm_producers", JSON.stringify(INITIAL_PRODUCERS));
+      }
+      if (!localStorage.getItem("rm_products")) {
+        localStorage.setItem("rm_products", JSON.stringify(INITIAL_PRODUCTS));
+      }
+      if (!localStorage.getItem("rm_events")) {
+        localStorage.setItem("rm_events", JSON.stringify(INITIAL_EVENTS));
+      }
+      if (!localStorage.getItem("rm_youth")) {
+        localStorage.setItem("rm_youth", JSON.stringify(INITIAL_YOUTH_ROUTES));
+      }
+      if (!localStorage.getItem("rm_admin_kpis")) {
+        localStorage.setItem("rm_admin_kpis", JSON.stringify(INITIAL_ADMIN_KPIS));
+      }
+      if (!localStorage.getItem("rm_cart")) {
+        localStorage.setItem("rm_cart", JSON.stringify([]));
+      }
+      if (!localStorage.getItem("rm_consumer_orders")) {
+        localStorage.setItem("rm_consumer_orders", JSON.stringify(INITIAL_ORDERS));
+      }
+      if (!localStorage.getItem("rm_chat")) {
+        localStorage.setItem("rm_chat", JSON.stringify(INITIAL_CHAT));
+      }
+      if (!localStorage.getItem("rm_user_profile")) {
+        localStorage.setItem("rm_user_profile", JSON.stringify(INITIAL_USER_PROFILE));
+      }
+    } catch (e) {
+      console.warn("Storage warning in DataStore init:", e);
     }
   }
 
   getProducers() {
-    return JSON.parse(localStorage.getItem("rm_producers"));
+    try {
+      const data = localStorage.getItem("rm_producers");
+      const parsed = data ? JSON.parse(data) : null;
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_PRODUCERS;
+    } catch (e) {
+      return INITIAL_PRODUCERS;
+    }
   }
 
   saveProducers(data) {
-    localStorage.setItem("rm_producers", JSON.stringify(data));
+    try {
+      localStorage.setItem("rm_producers", JSON.stringify(data));
+    } catch (e) {}
   }
 
   getProducts() {
-    return JSON.parse(localStorage.getItem("rm_products"));
+    try {
+      const data = localStorage.getItem("rm_products");
+      const parsed = data ? JSON.parse(data) : null;
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_PRODUCTS;
+    } catch (e) {
+      return INITIAL_PRODUCTS;
+    }
   }
 
   saveProducts(data) {
-    localStorage.setItem("rm_products", JSON.stringify(data));
+    try {
+      localStorage.setItem("rm_products", JSON.stringify(data));
+    } catch (e) {}
   }
 
   getEvents() {
-    return JSON.parse(localStorage.getItem("rm_events"));
+    try {
+      const data = localStorage.getItem("rm_events");
+      const parsed = data ? JSON.parse(data) : null;
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_EVENTS;
+    } catch (e) {
+      return INITIAL_EVENTS;
+    }
   }
 
   saveEvents(data) {
-    localStorage.setItem("rm_events", JSON.stringify(data));
+    try {
+      localStorage.setItem("rm_events", JSON.stringify(data));
+    } catch (e) {}
   }
 
   getRegions() {
-    return JSON.parse(localStorage.getItem("rm_regions")) || INITIAL_ZAFRA_ROUTES;
+    return this.getZafraRoutes();
   }
 
   getZafraRoutes() {
-    return JSON.parse(localStorage.getItem("rm_zafra_routes")) || INITIAL_ZAFRA_ROUTES;
+    try {
+      const data = localStorage.getItem("rm_zafra_routes");
+      const parsed = data ? JSON.parse(data) : null;
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_ZAFRA_ROUTES;
+    } catch (e) {
+      return INITIAL_ZAFRA_ROUTES;
+    }
   }
 
   getMapMunicipalities() {
-    return JSON.parse(localStorage.getItem("rm_map_municipalities")) || INITIAL_MAP_MUNICIPALITIES;
+    try {
+      const data = localStorage.getItem("rm_map_municipalities");
+      const parsed = data ? JSON.parse(data) : null;
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_MAP_MUNICIPALITIES;
+    } catch (e) {
+      return INITIAL_MAP_MUNICIPALITIES;
+    }
   }
 
   getZafraFairs() {
-    return JSON.parse(localStorage.getItem("rm_zafra_fairs")) || INITIAL_ZAFRA_FAIRS;
+    try {
+      const data = localStorage.getItem("rm_zafra_fairs");
+      const parsed = data ? JSON.parse(data) : null;
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_ZAFRA_FAIRS;
+    } catch (e) {
+      return INITIAL_ZAFRA_FAIRS;
+    }
   }
 
   getYouth() {
-    return JSON.parse(localStorage.getItem("rm_youth"));
+    try {
+      const data = localStorage.getItem("rm_youth");
+      const parsed = data ? JSON.parse(data) : null;
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_YOUTH_ROUTES;
+    } catch (e) {
+      return INITIAL_YOUTH_ROUTES;
+    }
   }
 
   saveYouth(data) {
-    localStorage.setItem("rm_youth", JSON.stringify(data));
+    try {
+      localStorage.setItem("rm_youth", JSON.stringify(data));
+    } catch (e) {}
   }
 
   getAdminKPIs() {
-    return JSON.parse(localStorage.getItem("rm_admin_kpis"));
+    try {
+      const data = localStorage.getItem("rm_admin_kpis");
+      const parsed = data ? JSON.parse(data) : null;
+      return parsed && typeof parsed === "object" ? parsed : INITIAL_ADMIN_KPIS;
+    } catch (e) {
+      return INITIAL_ADMIN_KPIS;
+    }
   }
 
   saveAdminKPIs(data) {
-    localStorage.setItem("rm_admin_kpis", JSON.stringify(data));
+    try {
+      localStorage.setItem("rm_admin_kpis", JSON.stringify(data));
+    } catch (e) {}
   }
 
   getCart() {
-    return JSON.parse(localStorage.getItem("rm_cart")) || [];
+    try {
+      const data = localStorage.getItem("rm_cart");
+      const parsed = data ? JSON.parse(data) : null;
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
   }
 
   saveCart(data) {
-    localStorage.setItem("rm_cart", JSON.stringify(data));
+    try {
+      localStorage.setItem("rm_cart", JSON.stringify(data));
+    } catch (e) {}
     window.dispatchEvent(new CustomEvent("cart-updated", { detail: data }));
   }
 
@@ -942,31 +1018,55 @@ class DataStore {
   }
 
   getConsumerOrders() {
-    return JSON.parse(localStorage.getItem("rm_consumer_orders")) || [];
+    try {
+      const data = localStorage.getItem("rm_consumer_orders");
+      const parsed = data ? JSON.parse(data) : null;
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_ORDERS;
+    } catch (e) {
+      return INITIAL_ORDERS;
+    }
   }
 
   saveConsumerOrders(orders) {
-    localStorage.setItem("rm_consumer_orders", JSON.stringify(orders));
+    try {
+      localStorage.setItem("rm_consumer_orders", JSON.stringify(orders));
+    } catch (e) {}
   }
 
   getChat() {
-    return JSON.parse(localStorage.getItem("rm_chat")) || [];
+    try {
+      const data = localStorage.getItem("rm_chat");
+      const parsed = data ? JSON.parse(data) : null;
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_CHAT;
+    } catch (e) {
+      return INITIAL_CHAT;
+    }
   }
 
   addChatMessage(sender, role, text) {
     const chat = this.getChat();
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     chat.push({ id: Date.now(), sender, role, text, time });
-    localStorage.setItem("rm_chat", JSON.stringify(chat));
+    try {
+      localStorage.setItem("rm_chat", JSON.stringify(chat));
+    } catch (e) {}
     window.dispatchEvent(new CustomEvent("chat-updated", { detail: chat }));
   }
 
   getUserProfile() {
-    return JSON.parse(localStorage.getItem("rm_user_profile"));
+    try {
+      const data = localStorage.getItem("rm_user_profile");
+      const parsed = data ? JSON.parse(data) : null;
+      return parsed && typeof parsed === "object" ? parsed : INITIAL_USER_PROFILE;
+    } catch (e) {
+      return INITIAL_USER_PROFILE;
+    }
   }
 
   saveUserProfile(profile) {
-    localStorage.setItem("rm_user_profile", JSON.stringify(profile));
+    try {
+      localStorage.setItem("rm_user_profile", JSON.stringify(profile));
+    } catch (e) {}
   }
 }
 

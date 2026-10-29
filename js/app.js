@@ -24,7 +24,11 @@ const Icons = {
 
 class App {
   constructor() {
-    this.currentRole = localStorage.getItem("rm_current_role") || "consumidor";
+    try {
+      this.currentRole = localStorage.getItem("rm_current_role") || "consumidor";
+    } catch (e) {
+      this.currentRole = "consumidor";
+    }
     this.consumerTab = "inicio";
     this.selectedMunicipality = "todos";
     this.selectedCategory = "todos";
@@ -36,10 +40,12 @@ class App {
     this.markersLayer = null;
     this.routeLineLayer = null;
 
-    const initialHash = window.location.hash.replace("#", "");
-    if (["inicio", "catalogo", "mapa", "ferias", "pedidos", "perfil"].includes(initialHash)) {
-      this.consumerTab = initialHash;
-    }
+    try {
+      const initialHash = window.location.hash.replace("#", "");
+      if (["inicio", "catalogo", "mapa", "ferias", "pedidos", "perfil"].includes(initialHash)) {
+        this.consumerTab = initialHash;
+      }
+    } catch (e) {}
     this.currentTileStyle = "satellite-dark";
     this.currentTileLayer = null;
     this.isMapFullscreen = false;
@@ -2243,8 +2249,40 @@ class App {
 }
 
 function initZafraApp() {
-  if (!window.app) {
-    window.app = new App();
+  try {
+    if (!window.app) {
+      window.app = new App();
+    }
+  } catch (err) {
+    console.error("Error al inicializar Zafra:", err);
+    const appEl = document.getElementById("app");
+    if (appEl) {
+      appEl.innerHTML = `
+        <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #081711; color: #ffffff; font-family: 'Outfit', sans-serif; text-align: center; padding: 24px;">
+          <div style="max-width: 440px; background: #0d1e16; border: 1px solid #1f3d2e; border-radius: 12px; padding: 32px 24px; box-shadow: 0 12px 30px rgba(0,0,0,0.5);">
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.35); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: #22c55e;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h2 style="font-size: 1.3rem; font-weight: 700; margin: 0 0 10px; color: #ffffff;">Actualización del Sistema Zafra</h2>
+            <p style="font-size: 0.88rem; color: #94a3b8; line-height: 1.5; margin-bottom: 22px;">
+              Se ha detectado una versión previa en la caché del navegador. Haz clic en el botón para sincronizar con los últimos datos de la red de Morelos.
+            </p>
+            <button id="btn-emergency-reset" style="background: #22c55e; color: #052e16; font-weight: 700; border: none; border-radius: 8px; padding: 12px 20px; font-size: 0.92rem; cursor: pointer; width: 100%; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);">
+              Sincronizar y Cargar Zafra
+            </button>
+          </div>
+        </div>
+      `;
+      const btn = document.getElementById("btn-emergency-reset");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          try {
+            localStorage.clear();
+          } catch(e) {}
+          window.location.reload();
+        });
+      }
+    }
   }
 }
 

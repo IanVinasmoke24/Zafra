@@ -11,27 +11,36 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <!-- Leaflet Map CSS with CDN fallback -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet Map CSS via Cloudflare CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" integrity="sha512-Zcn6bjR/8RZbLEpLIeOwNtzREBAJnUKESxces60Mpoj+2okopSAAIRWF/QUS9CfxRVwyZszo24GW4DudQrMtGQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
   <div id="offline-banner" class="offline-banner" style="display: none !important;" hidden>
     Sin conexión · Modo fuera de línea activo.
   </div>
-  <div id="app" aria-live="polite"></div>
+  <div id="app" aria-live="polite">
+    <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #081711; color: #ffffff; font-family: 'Outfit', -apple-system, sans-serif; text-align: center; padding: 24px;">
+      <div style="width: 58px; height: 58px; border-radius: 16px; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.35); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; box-shadow: 0 0 25px rgba(34, 197, 94, 0.25);">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <h1 style="font-size: 1.6rem; font-weight: 800; margin: 0 0 6px; letter-spacing: 0.04em; color: #ffffff;">ZAFRA</h1>
+      <p style="font-size: 0.86rem; color: #a7f3d0; margin: 0 0 24px; font-weight: 500;">Plataforma Agropecuaria · Morelos</p>
+      <div style="width: 28px; height: 28px; border: 3px solid rgba(34, 197, 94, 0.2); border-top-color: #22c55e; border-radius: 50%; animation: zafra-spin 0.8s linear infinite;"></div>
+      <style>
+        @keyframes zafra-spin {
+          to { transform: rotate(360deg); }
+        }
+      </style>
+    </div>
+  </div>
   <div id="modal-root"></div>
   <div id="toast-root" class="toast-root"></div>
   <noscript>Zafra necesita JavaScript para funcionar.</noscript>
-  <!-- Leaflet Map JS with cdnjs fallback -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>
-    if (typeof L === "undefined") {
-      const s = document.createElement("script");
-      s.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js";
-      document.head.appendChild(s);
-    }
-  </script>
+  <!-- Leaflet Map JS via Cloudflare CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" integrity="sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzSmZ37PEFi+51ymYX8VccP99uNW9UCZ5U764UVbfEGUg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
