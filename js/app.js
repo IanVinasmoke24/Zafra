@@ -2286,8 +2286,8 @@ function initZafraApp() {
   }
 }
 
+// Inicializar de inmediato y respaldar con DOMContentLoaded
+initZafraApp();
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initZafraApp);
-} else {
-  initZafraApp();
 }
