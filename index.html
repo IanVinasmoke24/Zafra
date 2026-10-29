@@ -13,7 +13,19 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <!-- Leaflet Map CSS via Cloudflare CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css?v=20261028_12" />
+  <script>
+    // Detector de Errores Global en Pantalla
+    window.addEventListener("error", function(e) {
+      console.error("ZAFRA RUNTIME ERROR:", e);
+      var errBox = document.getElementById("zafra-debug-error");
+      if (errBox) {
+        errBox.style.display = "block";
+        errBox.innerHTML = "<strong>Aviso:</strong> " + (e.message || "Error al cargar script") + 
+          "<br><span style='color:#a7f3d0; font-size:0.75rem;'>" + (e.filename || "").split("/").pop() + ":" + (e.lineno || "") + "</span>";
+      }
+    });
+  </script>
 </head>
 <body>
   <div id="offline-banner" class="offline-banner" style="display: none !important;" hidden>
@@ -27,20 +39,39 @@
         </svg>
       </div>
       <h1 style="font-size: 1.6rem; font-weight: 800; margin: 0 0 6px; letter-spacing: 0.04em; color: #ffffff;">ZAFRA</h1>
-      <p style="font-size: 0.86rem; color: #a7f3d0; margin: 0 0 24px; font-weight: 500;">Plataforma Agropecuaria · Morelos</p>
-      <div style="width: 28px; height: 28px; border: 3px solid rgba(34, 197, 94, 0.2); border-top-color: #22c55e; border-radius: 50%; animation: zafra-spin 0.8s linear infinite;"></div>
+      <p style="font-size: 0.86rem; color: #a7f3d0; margin: 0 0 20px; font-weight: 500;">Plataforma Agropecuaria · Morelos</p>
+      <div style="width: 28px; height: 28px; border: 3px solid rgba(34, 197, 94, 0.2); border-top-color: #22c55e; border-radius: 50%; animation: zafra-spin 0.8s linear infinite; margin-bottom: 14px;"></div>
+      <div id="zafra-status-text" style="font-size:0.8rem; color:#94a3b8;">Cargando cosechas y rutas de Morelos...</div>
+      
+      <div id="zafra-debug-error" style="display:none; margin-top:16px; padding:12px 18px; background:rgba(239,68,68,0.18); border:1px solid #ef4444; border-radius:8px; color:#fca5a5; font-size:0.82rem; max-width:380px;"></div>
+
+      <button id="zafra-emergency-btn" style="display:none; margin-top:16px; background:#22c55e; color:#052e16; font-weight:700; border:none; border-radius:8px; padding:10px 18px; font-size:0.85rem; cursor:pointer;" onclick="try{localStorage.clear();sessionStorage.clear();}catch(e){}window.location.reload(true);">
+        Restaurar Zafra
+      </button>
+
       <style>
         @keyframes zafra-spin {
           to { transform: rotate(360deg); }
         }
       </style>
+      <script>
+        setTimeout(function() {
+          if (!window.app) {
+            var btn = document.getElementById("zafra-emergency-btn");
+            var txt = document.getElementById("zafra-status-text");
+            if (btn) btn.style.display = "inline-block";
+            if (txt) txt.textContent = "Sincronizando versión de la red:";
+          }
+        }, 3000);
+      </script>
     </div>
   </div>
   <div id="modal-root"></div>
   <div id="toast-root" class="toast-root"></div>
   <noscript>Zafra necesita JavaScript para funcionar.</noscript>
-  <!-- Leaflet Map JS via Cloudflare CDN -->
+  <!-- Leaflet Map JS (Carga diferida) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" defer></script>
-  <script type="module" src="js/app.js"></script>
+  <!-- Zafra Universal App Bundle (Standalone, Sin bloqueo CORS ni módulos diferidos) -->
+  <script src="js/zafra.js?v=20261028_12"></script>
 </body>
 </html>
