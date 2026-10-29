@@ -807,12 +807,18 @@ class DataStore {
 
   init() {
     try {
-      const DATA_VERSION = "zafra_v3_routes_map";
+      const DATA_VERSION = "zafra_v4_prod_clean";
       if (localStorage.getItem("rm_zafra_version") !== DATA_VERSION) {
         localStorage.setItem("rm_zafra_routes", JSON.stringify(INITIAL_ZAFRA_ROUTES));
         localStorage.setItem("rm_map_municipalities", JSON.stringify(INITIAL_MAP_MUNICIPALITIES));
         localStorage.setItem("rm_zafra_fairs", JSON.stringify(INITIAL_ZAFRA_FAIRS));
         localStorage.setItem("rm_regions", JSON.stringify(INITIAL_ZAFRA_ROUTES));
+        localStorage.setItem("rm_producers", JSON.stringify(INITIAL_PRODUCERS));
+        localStorage.setItem("rm_products", JSON.stringify(INITIAL_PRODUCTS));
+        localStorage.setItem("rm_events", JSON.stringify(INITIAL_EVENTS));
+        localStorage.setItem("rm_youth", JSON.stringify(INITIAL_YOUTH_ROUTES));
+        localStorage.setItem("rm_admin_kpis", JSON.stringify(INITIAL_ADMIN_KPIS));
+        localStorage.setItem("rm_user_profile", JSON.stringify(INITIAL_USER_PROFILE));
         localStorage.setItem("rm_zafra_version", DATA_VERSION);
       }
 
