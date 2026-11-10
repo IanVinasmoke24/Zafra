@@ -3368,7 +3368,7 @@ class App {
 
 function initZafraApp() {
   try {
-    if (!window.app) {
+    if (!(window.app instanceof App)) {
       window.app = new App();
     }
   } catch (err) {
