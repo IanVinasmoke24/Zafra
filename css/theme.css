@@ -1,0 +1,190 @@
+﻿/* ==========================================================================
+   ZAFRA Â· Tema "papel de mercado" + responsive mÃ³vil/PC
+   Se carga despuÃ©s de styles.css y lo sobrescribe.
+   ========================================================================== */
+
+:root {
+  --brand-primary: #2f5d3a;
+  --brand-primary-hover: #3d7449;
+  --brand-primary-dark: #1d3a25;
+  --brand-surface-tint: #f1f4e8;
+  --brand-subtle: #e2e9cf;
+
+  --earth-accent: #b4532a;
+  --earth-subtle: #f6e6d3;
+
+  --ui-bg: #f6f0e4;
+  --ui-surface: #fffdf8;
+  --ui-surface-subtle: #f0e9da;
+  --ui-border: #e4dac4;
+  --ui-border-strong: #cfc2a4;
+  --ui-divider: #efe7d4;
+
+  --text-main: #2a2218;
+  --text-secondary: #5a4e3c;
+  --text-muted: #85785f;
+
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  --shadow-xs: none;
+  --shadow-sm: 0 1px 0 rgba(60, 45, 20, 0.06);
+  --shadow-md: 0 2px 0 rgba(60, 45, 20, 0.08);
+  --shadow-lg: 0 3px 0 rgba(60, 45, 20, 0.08);
+
+  --font-sans: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Fraunces', Georgia, 'Times New Roman', serif;
+}
+
+body { background: var(--ui-bg); font-size: 16px; }
+
+h1, h2, h3, .page-title, .hero-pro-title, .brand-name, .product-heading,
+.ops-banner-title, .modal-dialog-title, .kpi-number {
+  font-family: var(--font-heading);
+  letter-spacing: 0;
+}
+
+/* Header: claro y plano, sin brillos */
+.top-header {
+  background: var(--ui-surface);
+  color: var(--text-main);
+  border-bottom: 2px solid var(--brand-primary);
+  height: auto;
+  min-height: 60px;
+  padding: 8px 24px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.brand-logo-link, .brand-name { color: var(--brand-primary-dark); }
+.brand-name { font-weight: 700; font-size: 1.35rem; letter-spacing: 0.04em; }
+.brand-tag { color: var(--text-muted); }
+.network-badge { background: var(--brand-surface-tint); border-color: var(--brand-subtle); color: var(--brand-primary); }
+.network-dot { box-shadow: none; }
+.role-segmented-control { background: var(--ui-surface-subtle); border-color: var(--ui-border); }
+.role-tab-btn { color: var(--text-secondary); }
+.role-tab-btn:hover { color: var(--text-main); background: rgba(0,0,0,0.04); }
+.role-tab-btn.active { background: var(--brand-primary); color: #fff; }
+.btn-header-cart { background: var(--brand-primary); border-color: var(--brand-primary); color: #fff; }
+.btn-header-cart:hover { background: var(--brand-primary-hover); }
+.cart-counter { background: var(--earth-accent); color: #fff; }
+
+.subnav-bar { background: var(--ui-bg); border-bottom: 1px solid var(--ui-border); }
+.subnav-item.active { color: var(--earth-accent); border-bottom-color: var(--earth-accent); }
+
+/* Hero sin degradado "tech" */
+.hero-banner-pro {
+  background-image: linear-gradient(rgba(29, 40, 24, 0.62), rgba(29, 40, 24, 0.72)), url('../assets/img/hero_campo.jpg');
+  border: none;
+  border-radius: var(--radius-lg);
+}
+.hero-pro-badge { background: var(--earth-accent); border: none; color: #fff; border-radius: 2px; }
+.hero-pro-title { font-weight: 600; }
+.hero-pro-desc { color: #f1ead9; }
+
+.btn { border-radius: var(--radius-sm); }
+.btn-primary { background: var(--brand-primary); border-color: var(--brand-primary); }
+.btn-primary:hover { background: var(--brand-primary-hover); }
+
+/* Tarjetas planas con borde, sin sombras flotantes */
+.product-item, .ops-banner, .kpi-box, .fair-event-card, .program-kpi-strip {
+  box-shadow: none;
+  background: var(--ui-surface);
+}
+.product-item:hover, .fair-event-card:hover { transform: none; box-shadow: var(--shadow-md); border-color: var(--earth-accent); }
+.product-item:hover .product-img { transform: none; }
+.modal-overlay { backdrop-filter: none; background: rgba(42, 34, 24, 0.55); }
+
+/* MÃ³dulo de mapa: papel claro en lugar de panel negro */
+.map-module-wrapper { background: var(--ui-surface); border: 1px solid var(--ui-border-strong); box-shadow: none; }
+.map-control-header { background: var(--ui-surface-subtle); border-bottom: 1px solid var(--ui-border); }
+.map-canvas-container { background: var(--ui-surface-subtle); border-radius: 0; }
+#zafra-leaflet-map { background: #e8e1cf; }
+#zafra-leaflet-map.satellite-dark-mode .leaflet-tile-pane { filter: none; }
+.route-pill-btn { background: var(--ui-surface); border: 1px solid var(--ui-border-strong); color: var(--text-secondary); }
+.route-pill-btn.active { background: var(--brand-primary); border-color: var(--brand-primary); color: #fff; box-shadow: none; }
+.map-overlay-btn { background: var(--ui-surface); color: var(--text-main); border-color: var(--ui-border-strong); box-shadow: none; }
+.route-detail-banner { background: var(--ui-surface-subtle) !important; color: var(--text-main) !important; border-color: var(--ui-border) !important; }
+.route-banner-block-title { color: var(--earth-accent); }
+.route-tag-pill { background: var(--ui-surface); border-color: var(--ui-border-strong); color: var(--text-secondary); }
+.dark-table-section { background: var(--ui-surface); }
+.dark-table-header-title { color: var(--text-main); }
+.dark-table-subtitle { color: var(--text-muted); }
+.dark-products-table th { background: var(--ui-surface-subtle); color: var(--text-secondary); border-bottom-color: var(--ui-border-strong); }
+.dark-products-table td { color: var(--text-secondary); border-bottom-color: var(--ui-border); }
+.dark-products-table td.col-muni { color: var(--text-main); }
+.dark-products-table td.col-prod { color: var(--text-muted); }
+.dark-products-table tr:hover td { background: var(--ui-surface-subtle); }
+.dark-table-expand-indicator { background: var(--ui-surface-subtle); border-color: var(--ui-border-strong); color: var(--text-secondary); }
+
+img { max-width: 100%; }
+.dark-table-section { overflow-x: auto; }
+
+/* ================= MÃ“VIL ================= */
+@media (max-width: 768px) {
+  body { font-size: 15px; }
+
+  .top-header { padding: 8px 12px; justify-content: space-between; }
+  .brand-tag, .network-badge { display: none; }
+  .role-segmented-control { order: 3; width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .role-segmented-control::-webkit-scrollbar { display: none; }
+  .role-tab-btn { flex: 1 0 auto; justify-content: center; padding: 8px 12px; }
+  .header-actions { gap: 8px; }
+
+  /* NavegaciÃ³n inferior fija estilo app */
+  .subnav-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 1500;
+    padding: 0; background: var(--ui-surface);
+    border-top: 2px solid var(--brand-primary); border-bottom: none;
+  }
+  .subnav-tabs { width: 100%; gap: 0; justify-content: space-around; overflow-x: auto; }
+  .subnav-item {
+    flex: 1 0 auto; flex-direction: column; gap: 2px;
+    font-size: 0.68rem; padding: 8px 10px; min-width: 56px;
+    border-bottom: none; border-top: 3px solid transparent; margin-top: -2px;
+  }
+  .subnav-item.active { border-top-color: var(--earth-accent); }
+
+  .main-wrapper { padding: 14px 12px 96px; }
+  .page-header { margin-bottom: 14px; }
+  .page-title { font-size: 1.25rem; }
+
+  .hero-banner-pro { padding: 22px 16px; flex-direction: column; align-items: flex-start; gap: 14px; }
+  .hero-pro-title { font-size: 1.5rem; }
+  .hero-pro-actions { width: 100%; }
+  .hero-pro-actions .btn { flex: 1 1 100%; }
+
+  .program-kpi-strip { flex-direction: column; align-items: stretch; gap: 12px; padding: 14px; }
+  .kpi-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kpi-box { padding: 12px; }
+
+  .ops-banner { flex-direction: column; }
+  .ops-banner-img { width: 100%; height: 150px; }
+
+  .catalog-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+  .fairs-events-grid { grid-template-columns: 1fr; }
+  .product-content { padding: 10px; }
+
+  .map-control-header { padding: 10px 12px; }
+  .map-route-pills { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 6px; width: 100%; scrollbar-width: none; padding-bottom: 2px; }
+  .map-route-pills::-webkit-scrollbar { display: none; }
+  .route-pill-btn { flex: 0 0 auto; white-space: nowrap; }
+  #zafra-leaflet-map { height: 360px; }
+  .dark-products-table td.col-muni { width: auto; white-space: normal; }
+  .dark-products-table th, .dark-products-table td { padding: 10px 8px; }
+
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal-dialog { max-width: 100%; max-height: 92vh; border-radius: 12px 12px 0 0; }
+
+  .toast-root { left: 12px; right: 12px; bottom: 76px; }
+}
+
+@media (max-width: 380px) {
+  .catalog-grid { grid-template-columns: 1fr !important; }
+}
+
+
+/* Textos con color inline pensado para fondo oscuro */
+.map-module-wrapper [style*='#cbd5e1'], .map-module-wrapper [style*='#94a3b8'], .map-module-wrapper [style*='#ffffff'] { color: var(--text-secondary) !important; }
+.map-module-wrapper [style*='#64748b'] { color: var(--text-muted) !important; }
