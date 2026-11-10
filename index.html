@@ -1294,12 +1294,12 @@ class App {
             <img src="assets/icon.svg" alt="Zafra" class="brand-logo-img" />
             <div>
               <div class="brand-name">ZAFRA</div>
-              <div class="brand-tag">Plataforma Agropecuaria · Morelos</div>
+              <div class="brand-tag">Del campo de Morelos a tu mesa</div>
             </div>
           </a>
           <span class="network-badge">
             <span class="network-dot"></span>
-            <span>Red Activa: Valles y Altos</span>
+            <span>Envíos esta semana</span>
           </span>
         </div>
 
@@ -1345,22 +1345,22 @@ class App {
       <div class="subnav-bar">
         <div class="subnav-tabs">
           <button class="subnav-item ${this.consumerTab === 'inicio' ? 'active' : ''}" data-tab="inicio">
-            Resumen General
+            Inicio
           </button>
           <button class="subnav-item ${this.consumerTab === 'catalogo' ? 'active' : ''}" data-tab="catalogo">
-            Catálogo & Preventas
+            Catálogo
           </button>
           <button class="subnav-item ${this.consumerTab === 'mapa' ? 'active' : ''}" data-tab="mapa">
-            Rutas & Talleres (Mapa)
+            Mapa
           </button>
           <button class="subnav-item ${this.consumerTab === 'ferias' ? 'active' : ''}" data-tab="ferias">
-            Ferias & Eventos
+            Ferias
           </button>
           <button class="subnav-item ${this.consumerTab === 'pedidos' ? 'active' : ''}" data-tab="pedidos">
-            Despacho & Seguimiento
+            Mis pedidos
           </button>
           <button class="subnav-item ${this.consumerTab === 'perfil' ? 'active' : ''}" data-tab="perfil">
-            Punto de Entrega
+            Mi entrega
           </button>
         </div>
       </div>
@@ -1432,76 +1432,47 @@ class App {
     const inSeason = products.filter(p => p.tags.includes("De temporada") || p.isPreventa);
 
     return `
-      <!-- Hero Banner Operativo -->
+      <!-- Portada -->
       <section class="hero-banner-pro">
         <div class="hero-pro-text">
-          <div class="hero-pro-badge">
-            ${Icons.shield} Red de Abastecimiento Directo Morelos
-          </div>
-          <h2 class="hero-pro-title">Cosechas del campo sin intermediación comercial</h2>
+          <div class="hero-pro-badge">Morelos · Temporada de otoño</div>
+          <h2 class="hero-pro-title">Compra directo al productor</h2>
           <p class="hero-pro-desc">
-            Abastécete de productores verificados de Cuautla, Tlayacapan, Ayala y la región oriente. Al adquirir en preventa garantizas corte matutino, mermas cero y logística a cargo de estudiantes universitarios.
+            Jitomate, nopal, mango, elote y más, cortados la víspera en Cuautla, Tlayacapan y Yecapixtla. Apartas en preventa y el productor cosecha solo lo pedido.
           </p>
           <div class="hero-pro-actions">
-            <button class="btn btn-primary" id="hero-explore-btn">
-              ${Icons.packageIcon} Explorar Cosechas en Preventa
-            </button>
-            <button class="btn btn-secondary" id="hero-map-btn">
-              ${Icons.mapPin} Consultar Mapa Regional
-            </button>
+            <button class="btn btn-primary" id="hero-explore-btn">Ver qué hay esta semana</button>
+            <button class="btn btn-secondary" id="hero-map-btn">Ver el mapa</button>
           </div>
         </div>
-
-        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 18px 22px; min-width: 260px;">
-          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: #a7f3d0; margin-bottom: 4px;">Ciclo Operativo Actual</div>
-          <div style="font-size: 1.15rem; font-weight: 700; color: #ffffff;">Temporada Otoño · 2026</div>
-          <div style="font-size: 0.8rem; color: #94a3b8; margin: 6px 0 12px;">Corte programado: Jueves y Viernes</div>
-          <div style="display: flex; gap: 8px; font-size: 0.76rem; color: #cbd5e1;">
-            <span>${Icons.check} Trazabilidad</span>
-            <span>·</span>
-            <span>${Icons.check} Cero merma</span>
-          </div>
-        </div>
+        <dl class="hero-aside">
+          <div><dt>Corte</dt><dd>Jueves y viernes</dd></div>
+          <div><dt>Entrega</dt><dd>Sábado en tu punto o recoges en feria</dd></div>
+          <div><dt>Pago</dt><dd>Al recibir o por transferencia</dd></div>
+        </dl>
       </section>
 
-      <!-- Banner de Acceso Rápido a la Cartografía Satelital (API Activa) -->
-      <div style="background: linear-gradient(135deg, #09130e 0%, #0d1e16 100%); border: 1px solid #1f3d2e; border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: var(--shadow-xs);">
-        <div style="display: flex; align-items: center; gap: 14px;">
-          <div style="width: 42px; height: 42px; border-radius: 50%; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.35); display: flex; align-items: center; justify-content: center; color: #22c55e; flex-shrink: 0;">
-            ${Icons.mapPin}
-          </div>
-          <div>
-            <div style="font-weight: 700; color: #ffffff; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
-              <span>Cartografía Satelital Zafra · Estado de Morelos</span>
-              <span style="font-size: 0.68rem; background: #064e3b; color: #a7f3d0; border: 1px solid #059669; padding: 2px 7px; border-radius: 12px; font-weight: 600;">API Satelital Activa</span>
-            </div>
-            <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 2px;">Visualizador topográfico con las 6 rutas productivas, talleres y padrón de 15 municipios con estrellas de calificación.</div>
-          </div>
+      <div class="quick-row">
+        <div>
+          <strong>Mapa de rutas y talleres</strong>
+          <span>6 rutas productivas y 15 municipios de Morelos.</span>
         </div>
-        <button class="btn btn-primary btn-sm" id="home-goto-map-quick">
-          Abrir Mapa Satelital & Rutas ${Icons.chevronRight}
-        </button>
+        <button class="btn btn-secondary btn-sm" id="home-goto-map-quick">Abrir mapa ${Icons.chevronRight}</button>
       </div>
 
-      <!-- KPI de Abastecimiento Directo -->
       <section class="program-kpi-strip">
         <div class="program-kpi-left">
-          <div class="program-icon-box">
-            ${Icons.trendingUp}
-          </div>
           <div>
-            <div class="program-kpi-title">Programa de Abastecimiento Local Directo</div>
+            <div class="program-kpi-title">Tus pedidos del mes</div>
             <div class="program-kpi-desc">
-              Has completado <strong>${profile.purchasesThisMonth} de ${profile.goalPurchases}</strong> pedidos mensuales. Alcanza la meta para obtener bonificación logística.
+              Llevas <strong>${profile.purchasesThisMonth} de ${profile.goalPurchases}</strong>. Al completar la meta ganas envío gratis.
             </div>
           </div>
         </div>
-
         <div style="display: flex; align-items: center; gap: 16px;">
           <div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-align: right; margin-bottom: 4px; font-weight: 600;">Progreso mensual: 75%</div>
             <div class="progress-track">
-              <div class="progress-bar" style="width: ${(profile.purchasesThisMonth / profile.goalPurchases) * 100}%;"></div>
+              <div class="progress-bar" style="width: ${Math.min(100, (profile.purchasesThisMonth / profile.goalPurchases) * 100)}%;"></div>
             </div>
           </div>
           <span class="coupon-pill">${profile.rewardCoupon}</span>
@@ -1514,12 +1485,12 @@ class App {
           <img src="assets/img/feria.jpg" alt="Feria de Productores" class="ops-banner-img" />
           <div class="ops-banner-body">
             <div>
-              <span class="ops-banner-tag">Encuentro Mensual</span>
+              <span class="ops-banner-tag">Feria mensual</span>
               <h3 class="ops-banner-title">Feria "Del Campo a tu Mesa"</h3>
               <p class="ops-banner-sub">Zócalo de Cuautla · Domingo 15 de Noviembre. Acopio y punto de encuentro con más de 35 parcelas.</p>
             </div>
             <button class="btn btn-secondary btn-sm" id="home-view-fair-btn" style="align-self: flex-start;">
-              Detalles de Convocatoria ${Icons.chevronRight}
+              Ver detalles ${Icons.chevronRight}
             </button>
           </div>
         </div>
@@ -1528,12 +1499,12 @@ class App {
           <img src="assets/img/taller_huerto.jpg" alt="Taller Comunitario" class="ops-banner-img" />
           <div class="ops-banner-body">
             <div>
-              <span class="ops-banner-tag">Formación Técnica</span>
+              <span class="ops-banner-tag">Taller</span>
               <h3 class="ops-banner-title">Taller: Huerto Biointensivo</h3>
               <p class="ops-banner-sub">Impartido por brigadistas de agronomía UAEM en Huerto El Caracol, Yautepec.</p>
             </div>
             <button class="btn btn-secondary btn-sm" id="home-view-workshop-btn" style="align-self: flex-start;">
-              Consultar Programa ($180 MXN) ${Icons.chevronRight}
+              Ver programa · $180 MXN ${Icons.chevronRight}
             </button>
           </div>
         </div>
@@ -1542,11 +1513,11 @@ class App {
       <!-- Sección de Cosechas en Preventa -->
       <div class="page-header" style="margin-bottom: 16px;">
         <div>
-          <h3 class="page-title" style="font-size: 1.25rem;">Cosechas Disponibles en Preventa</h3>
-          <p class="page-subtitle">Productos asignados para corte esta semana en parcelas aliadas</p>
+          <h3 class="page-title" style="font-size: 1.25rem;">Esta semana en preventa</h3>
+          <p class="page-subtitle">Cortes confirmados en parcelas de la red</p>
         </div>
         <button class="btn btn-ghost btn-sm" id="home-see-all-catalog">
-          Ver Catálogo Completo ${Icons.chevronRight}
+          Ver todo ${Icons.chevronRight}
         </button>
       </div>
 
@@ -1574,8 +1545,8 @@ class App {
     return `
       <div class="page-header">
         <div>
-          <h2 class="page-title">Catálogo de Cosechas y Preventa</h2>
-          <p class="page-subtitle">Pedidos programados antes del corte: el campesino cosecha únicamente el volumen confirmado</p>
+          <h2 class="page-title">Catálogo</h2>
+          <p class="page-subtitle">Aparta antes del corte: el productor cosecha solo lo pedido</p>
         </div>
         <div style="font-size: 0.82rem; color: var(--text-muted); font-weight: 500;">
           ${filtered.length} productos listados
@@ -1589,7 +1560,7 @@ class App {
             type="text" 
             class="search-field-input" 
             id="catalog-search-input" 
-            placeholder="Buscar cultivo, ej. jitomate riñón, amaranto, arroz morelos o productor..."
+            placeholder="Buscar jitomate, nopal, mango, productor..."
             value="${this.searchQuery}"
           />
         </div>
@@ -1597,7 +1568,7 @@ class App {
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <div style="display: flex; align-items: center; justify-content: space-between;">
             <span style="font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">
-              Región / Municipio de Origen:
+              Municipio:
             </span>
             ${this.selectedMunicipality !== 'todos' || this.selectedCategory !== 'todos' ? `
               <button class="btn btn-ghost btn-sm" id="reset-filters-btn" style="padding: 2px 6px; font-size: 0.75rem;">Limpiar filtros</button>
@@ -1614,7 +1585,7 @@ class App {
 
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <span style="font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">
-            Categoría Agropecuaria:
+            Categoría:
           </span>
           <div class="filter-segments-row" id="cat-pills">
             ${categories.map(c => `

@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    ZAFRA Â· Tema "papel de mercado" + responsive mÃ³vil/PC
    Se carga despuÃ©s de styles.css y lo sobrescribe.
    ========================================================================== */
@@ -188,3 +188,47 @@ img { max-width: 100%; }
 /* Textos con color inline pensado para fondo oscuro */
 .map-module-wrapper [style*='#cbd5e1'], .map-module-wrapper [style*='#94a3b8'], .map-module-wrapper [style*='#ffffff'] { color: var(--text-secondary) !important; }
 .map-module-wrapper [style*='#64748b'] { color: var(--text-muted) !important; }
+
+/* ===== Portada y componentes de uso real ===== */
+.hero-banner-pro { padding: 40px 32px; align-items: flex-end; min-height: 280px; }
+.hero-pro-title { font-size: 2.4rem; line-height: 1.1; max-width: 14ch; }
+.hero-pro-desc { max-width: 52ch; font-size: 1rem; }
+.hero-pro-actions .btn-primary { background: var(--earth-accent); border-color: var(--earth-accent); }
+.hero-pro-actions .btn-primary:hover { background: #9a4521; border-color: #9a4521; }
+.hero-pro-actions .btn-secondary { background: transparent; color: #fff; border-color: rgba(255,255,255,0.7); }
+.hero-pro-actions .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+
+.hero-aside { background: var(--ui-surface); color: var(--text-main); border-radius: var(--radius-md); padding: 6px 18px; min-width: 260px; max-width: 320px; }
+.hero-aside div { padding: 10px 0; border-bottom: 1px solid var(--ui-border); }
+.hero-aside div:last-child { border-bottom: none; }
+.hero-aside dt { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--earth-accent); font-weight: 700; }
+.hero-aside dd { font-size: 0.92rem; font-weight: 500; margin-top: 2px; }
+
+.quick-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; margin-bottom: 20px; background: var(--ui-surface); border: 1px solid var(--ui-border); border-left: 4px solid var(--brand-primary); border-radius: var(--radius-sm); }
+.quick-row strong { display: block; font-size: 0.95rem; }
+.quick-row span { font-size: 0.82rem; color: var(--text-muted); }
+
+.program-kpi-strip { border-left: 4px solid var(--earth-accent); }
+.program-icon-box { display: none; }
+
+/* Tarjetas de producto: precio protagonista */
+.catalog-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+.product-image-container { aspect-ratio: 4 / 3; }
+.product-heading { font-size: 1.1rem; font-weight: 600; }
+.price-figure { font-family: var(--font-heading); font-size: 1.45rem; font-weight: 700; color: var(--brand-primary-dark); }
+.price-sub { font-size: 0.74rem; color: var(--text-muted); }
+.tag-badge { border-radius: 2px; font-weight: 600; }
+
+/* Filtros */
+.filter-toolbar { background: var(--ui-surface); border: 1px solid var(--ui-border); border-radius: var(--radius-md); padding: 14px; }
+.filter-chip { border-radius: 2px; border: 1px solid var(--ui-border-strong); background: var(--ui-bg); color: var(--text-secondary); }
+.filter-chip.active { background: var(--brand-primary); border-color: var(--brand-primary); color: #fff; }
+.search-field-input { background: var(--ui-bg); border: 1px solid var(--ui-border-strong); border-radius: var(--radius-sm); }
+
+@media (max-width: 768px) {
+  .hero-banner-pro { min-height: 0; padding: 24px 16px; }
+  .hero-pro-title { font-size: 1.8rem; }
+  .hero-aside { max-width: none; width: 100%; }
+  .quick-row { flex-direction: column; align-items: stretch; }
+  .catalog-grid { grid-template-columns: 1fr 1fr !important; }
+}
