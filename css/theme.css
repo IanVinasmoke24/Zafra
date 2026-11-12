@@ -132,21 +132,50 @@ img { max-width: 100%; }
   .role-tab-btn { flex: 1 0 auto; justify-content: center; padding: 8px 12px; }
   .header-actions { gap: 8px; }
 
-  /* NavegaciÃ³n inferior fija estilo app */
+  /* Menú superior completo en cuadrícula 3x2 (sin ir hasta abajo ni cortarse) */
   .subnav-bar {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 1500;
-    padding: 0; background: var(--ui-surface);
-    border-top: 2px solid var(--brand-primary); border-bottom: none;
+    position: static;
+    padding: 8px 10px;
+    background: var(--ui-bg);
+    border-top: none;
+    border-bottom: 1px solid var(--ui-border);
   }
-  .subnav-tabs { width: 100%; gap: 0; justify-content: space-around; overflow-x: auto; }
+  .subnav-tabs {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    overflow: visible;
+  }
   .subnav-item {
-    flex: 1 0 auto; flex-direction: column; gap: 2px;
-    font-size: 0.68rem; padding: 8px 10px; min-width: 56px;
-    border-bottom: none; border-top: 3px solid transparent; margin-top: -2px;
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.15;
+    padding: 8px 6px;
+    min-height: 36px;
+    border: 1px solid var(--ui-border);
+    border-radius: 8px;
+    background: var(--ui-surface);
+    color: var(--text-secondary);
+    margin-top: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
-  .subnav-item.active { border-top-color: var(--earth-accent); }
+  .subnav-item.active {
+    background: var(--brand-surface-tint);
+    border-color: var(--brand-primary);
+    color: var(--brand-primary-dark);
+    font-weight: 700;
+  }
 
-  .main-wrapper { padding: 14px 12px 96px; }
+  .main-wrapper { padding: 14px 12px 36px; }
   .page-header { margin-bottom: 14px; }
   .page-title { font-size: 1.25rem; }
 
@@ -177,10 +206,11 @@ img { max-width: 100%; }
   .modal-overlay { padding: 0; align-items: flex-end; }
   .modal-dialog { max-width: 100%; max-height: 92vh; border-radius: 12px 12px 0 0; }
 
-  .toast-root { left: 12px; right: 12px; bottom: 76px; }
+  .toast-root { left: 12px; right: 12px; bottom: 16px; }
 }
 
 @media (max-width: 380px) {
+  .subnav-item { font-size: 0.72rem; padding: 7px 4px; }
   .catalog-grid { grid-template-columns: 1fr !important; }
 }
 
