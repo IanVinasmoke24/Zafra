@@ -267,6 +267,8 @@ img { max-width: 100%; }
 .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
 .product-image-container { aspect-ratio: 4 / 3; }
 .product-heading { font-size: 1.1rem; font-weight: 600; }
+.product-card-bottom { gap: 10px; }
+.product-price-meta { min-width: 0; }
 .price-figure { font-family: var(--font-heading); font-size: 1.45rem; font-weight: 700; color: var(--brand-primary-dark); }
 .price-sub { font-size: 0.74rem; color: var(--text-muted); }
 .tag-badge { border-radius: 2px; font-weight: 600; }
@@ -283,6 +285,38 @@ img { max-width: 100%; }
   .hero-aside { max-width: none; width: 100%; }
   .quick-row { flex-direction: column; align-items: stretch; }
   .catalog-grid { grid-template-columns: 1fr 1fr !important; }
+  .product-heading { font-size: 0.96rem; line-height: 1.25; }
+  .product-location { font-size: 0.72rem; }
+  .product-harvest-info { font-size: 0.72rem; margin-bottom: 8px; }
+  .product-delivery-info { font-size: 0.7rem; margin: 2px 0 6px; }
+  .product-card-bottom {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding-top: 8px;
+  }
+  .product-price-meta {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-width: 0;
+  }
+  .price-figure {
+    font-size: 1.15rem;
+    line-height: 1.1;
+  }
+  .price-sub {
+    font-size: 0.7rem;
+    margin-top: 0;
+  }
+  .product-card-bottom .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 7px 10px;
+    font-size: 0.8rem;
+  }
 }
 /* ===== Catálogo por secciones A–I ===== */
 .catalog-section { margin-bottom: 36px; }
