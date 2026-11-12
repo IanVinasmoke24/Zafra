@@ -2996,7 +2996,7 @@ class App {
                 <div class="producer-lot-meta">${this.escapeHtml(p.category)}</div>
                 <h4 class="product-heading">${this.escapeHtml(p.name)}</h4>
                 <div class="producer-lot-info">
-                  <span>Precio: <strong>${Number(p.price).toFixed(2)} / ${this.escapeHtml(p.unit)}</strong></span>
+                  <span>Precio: <strong>$${Number(p.price).toFixed(2)} / ${this.escapeHtml(p.unit)}</strong></span>
                   <span>Stock: <strong>${p.stock ?? 0} ${this.escapeHtml(p.unit)}</strong></span>
                   <span>${this.escapeHtml(p.availability || p.harvestDate || 'Disponible esta semana')}</span>
                 </div>
@@ -3094,7 +3094,7 @@ class App {
                   <td data-label="Dirección" style="font-size: 0.8rem; color: var(--text-secondary);">${this.escapeHtml(stop.address)}</td>
                   <td data-label="Ventana">${this.escapeHtml(stop.window)}</td>
                   <td data-label="Pedido" style="font-size: 0.8rem;">${this.escapeHtml(stop.itemsSummary)}</td>
-                  <td data-label="Cobro" style="font-weight: 600;">${this.escapeHtml(stop.paymentMethod)} (${stop.total})</td>
+                  <td data-label="Cobro" style="font-weight: 600;">${this.escapeHtml(stop.paymentMethod)} ($${stop.total})</td>
                   <td data-label="Firma">
                     ${stop.status === 'completed' ? `
                       <div class="youth-signed-cell">
@@ -3143,6 +3143,11 @@ class App {
           <h2 class="page-title">Tablero de Control e Impacto Estatal</h2>
           <p class="page-subtitle">Indicadores agregados de comercialización directa, volumen de mermas mitigadas y balance universitario</p>
         </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" class="btn btn-primary btn-sm" id="admin-open-general-dossier">
+            ${Icons.download} Ver Expediente Generado
+          </button>
+        </div>
       </div>
 
       <div class="kpi-row">
@@ -3178,7 +3183,7 @@ class App {
         </div>
 
         <div class="data-table-wrapper">
-          <table class="data-table">
+          <table class="data-table admin-producers-table">
             <thead>
               <tr>
                 <th>Productor</th>
@@ -3193,19 +3198,19 @@ class App {
             <tbody>
               ${producers.map(p => `
                 <tr>
-                  <td style="font-weight: 600; color: var(--text-main);">${p.name}</td>
-                  <td>${p.ranchName}</td>
-                  <td>${p.municipality}</td>
-                  <td>${p.yearsFarming} años</td>
-                  <td>${p.rating} / 5.0</td>
-                  <td>
-                    <span style="background: var(--brand-surface-tint); color: var(--brand-primary); font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 4px;">
+                  <td data-label="Productor" style="font-weight: 600; color: var(--text-main);">${this.escapeHtml(p.name)}</td>
+                  <td data-label="Parcela">${this.escapeHtml(p.ranchName)}</td>
+                  <td data-label="Municipio">${this.escapeHtml(p.municipality)}</td>
+                  <td data-label="Años Activo">${p.yearsFarming} años</td>
+                  <td data-label="Calificación">${p.rating} / 5.0</td>
+                  <td data-label="Estatus">
+                    <span class="admin-status-badge ${p.verified ? 'verified' : 'pending'}">
                       ${p.verified ? 'Verificado' : 'En trámite'}
                     </span>
                   </td>
-                  <td>
-                    <button class="btn btn-secondary btn-sm admin-inspect-producer" data-id="${p.id}">
-                      Expediente
+                  <td data-label="Auditoría">
+                    <button type="button" class="btn btn-secondary btn-sm admin-inspect-producer" data-id="${this.escapeHtml(p.id)}">
+                      Ver Expediente
                     </button>
                   </td>
                 </tr>
@@ -3220,15 +3225,15 @@ class App {
         <h4 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; margin-bottom: 12px;">
           Parámetros Financieros y Tarifas Operativas
         </h4>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div class="admin-settings-grid">
           <div class="form-group-item">
             <label class="form-label-title">Retención de Operación Logística (%)</label>
-            <input type="number" class="form-input-control" value="10" />
+            <input type="number" id="admin-commission-input" class="form-input-control" value="${Number(kpis.commissionRate ?? 10)}" min="0" max="50" />
             <span style="font-size: 0.74rem; color: var(--text-muted);">Destinado a seguro contra accidentes de brigadistas y empaque ecológico</span>
           </div>
           <div class="form-group-item">
             <label class="form-label-title">Incentivo Base por Entrega Domiciliar ($ MXN)</label>
-            <input type="number" class="form-input-control" value="25" />
+            <input type="number" id="admin-delivery-fee-input" class="form-input-control" value="${Number(kpis.deliveryFee ?? 25)}" min="0" />
             <span style="font-size: 0.74rem; color: var(--text-muted);">Transferencia íntegra al estudiante repartidor</span>
           </div>
         </div>
@@ -3476,10 +3481,27 @@ class App {
       downloadCert.addEventListener("click", () => this.openCertificateModal());
     }
 
+    const openGeneralDossier = document.getElementById("admin-open-general-dossier");
+    if (openGeneralDossier) {
+      openGeneralDossier.addEventListener("click", () => this.openAdminNetworkDossierModal());
+    }
+
+    this.appEl.querySelectorAll(".admin-inspect-producer").forEach(btn => {
+      btn.addEventListener("click", () => {
+        this.openAdminProducerDossierModal(btn.dataset.id);
+      });
+    });
+
     const saveAdminSettings = document.getElementById("save-admin-settings");
     if (saveAdminSettings) {
       saveAdminSettings.addEventListener("click", () => {
-        this.showToast("Configuración guardada exitosamente.", "success");
+        const current = store.getAdminKPIs();
+        const commEl = document.getElementById("admin-commission-input");
+        const feeEl = document.getElementById("admin-delivery-fee-input");
+        if (commEl) current.commissionRate = Number(commEl.value) || 0;
+        if (feeEl) current.deliveryFee = Number(feeEl.value) || 0;
+        store.saveAdminKPIs(current);
+        this.showToast("Parámetros operativos guardados exitosamente.", "success");
       });
     }
 
@@ -4003,7 +4025,7 @@ class App {
               <div class="signature-stop-summary">
                 <strong>${this.escapeHtml(stop.clientName)}</strong> · ${this.escapeHtml(stop.orderId)}
                 <div>${this.escapeHtml(stop.address)}</div>
-                <div>${this.escapeHtml(stop.itemsSummary)} · <b>${this.escapeHtml(stop.paymentMethod)} (${stop.total})</b></div>
+                <div>${this.escapeHtml(stop.itemsSummary)} · <b>${this.escapeHtml(stop.paymentMethod)} ($${stop.total})</b></div>
               </div>
             ` : ""}
 
@@ -4418,6 +4440,278 @@ class App {
         this.render();
       });
     }
+  }
+
+  // ==========================================================================
+  // EXPEDIENTES GENERADOS (ADMINISTRACIÓN OPERATIVA)
+  // ==========================================================================
+  openAdminProducerDossierModal(producerId) {
+    const producers = store.getProducers();
+    const producer = producers.find(p => p.id === producerId);
+    if (!producer) return;
+
+    const allLots = store.getProducts().filter(p => p.producerId === producer.id);
+    const activeLots = allLots.filter(p => !p.paused);
+    const pausedLots = allLots.filter(p => p.paused);
+    const estimatedInventoryValue = activeLots.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.stock) || 0)), 0);
+    const folio = `EXP-MOR-${String(producer.id || "001").toUpperCase()}-2026`;
+    const generatedAt = new Date().toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" });
+
+    this.modalRoot.innerHTML = `
+      <div class="modal-overlay" id="modal-bg">
+        <div class="modal-dialog dossier-modal-dialog">
+          <div class="modal-dialog-header">
+            <h3 class="modal-dialog-title">Expediente Técnico Generado</h3>
+            <button type="button" class="modal-dismiss-btn" id="close-modal-x">&times;</button>
+          </div>
+          <div class="modal-dialog-body">
+            <div class="dossier-sheet">
+              <div class="dossier-doc-header">
+                <div>
+                  <div class="dossier-kicker">Red Agroalimentaria Zafra · Estado de Morelos</div>
+                  <h4 class="dossier-title">Expediente de Auditoría Productiva</h4>
+                  <div class="dossier-meta">Folio: <strong>${this.escapeHtml(folio)}</strong> · Emitido: ${this.escapeHtml(generatedAt)}</div>
+                </div>
+                <span class="admin-status-badge ${producer.verified ? 'verified' : 'pending'}">
+                  ${producer.verified ? 'Verificado Oficialmente' : 'En Trámite de Revisión'}
+                </span>
+              </div>
+
+              <div class="dossier-profile-card">
+                <img src="${this.escapeHtml(producer.avatar)}" alt="${this.escapeHtml(producer.name)}" class="dossier-avatar" />
+                <div>
+                  <div class="dossier-name">${this.escapeHtml(producer.name)}</div>
+                  <div class="dossier-sub">${this.escapeHtml(producer.ranchName)} · ${this.escapeHtml(producer.municipality)}, ${this.escapeHtml(producer.region || 'Morelos')}</div>
+                  <div class="dossier-bio">${this.escapeHtml(producer.bio)}</div>
+                </div>
+              </div>
+
+              <div class="dossier-metrics-grid">
+                <div class="dossier-metric-box">
+                  <span>Trayectoria</span>
+                  <strong>${producer.yearsFarming} años</strong>
+                </div>
+                <div class="dossier-metric-box">
+                  <span>Calificación</span>
+                  <strong>${producer.rating} / 5.0 (${producer.reviewsCount || 0})</strong>
+                </div>
+                <div class="dossier-metric-box">
+                  <span>Lotes Registrados</span>
+                  <strong>${activeLots.length} activos · ${pausedLots.length} pausados</strong>
+                </div>
+                <div class="dossier-metric-box">
+                  <span>Valor Estimado Activo</span>
+                  <strong>$${estimatedInventoryValue.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                </div>
+              </div>
+
+              <div class="dossier-section">
+                <div class="dossier-section-title">Dictamen Técnico de Cumplimiento</div>
+                <ul class="dossier-checklist">
+                  <li><span>✓</span> Procedencia territorial confirmada en ${this.escapeHtml(producer.municipality)}, Morelos.</li>
+                  <li><span>✓</span> Ventana regular de corte y acopio: ${this.escapeHtml(producer.harvestDays || 'Semanal')}.</li>
+                  <li><span>✓</span> Manejo limpio sin agroquímicos agresivos y trazabilidad directa por lote.</li>
+                </ul>
+              </div>
+
+              <div class="dossier-section">
+                <div class="dossier-section-title">Inventario de Lotes en Plataforma (${allLots.length})</div>
+                ${allLots.length === 0 ? `
+                  <p style="font-size: 0.82rem; color: var(--text-muted);">Sin lotes activos registrados para esta parcela.</p>
+                ` : `
+                  <div class="dossier-lots-list">
+                    ${allLots.map(l => `
+                      <div class="dossier-lot-row">
+                        <div>
+                          <strong>${this.escapeHtml(l.name)}</strong>
+                          <small>${this.escapeHtml(l.category)} · Stock: ${l.stock ?? 0} ${this.escapeHtml(l.unit)}</small>
+                        </div>
+                        <div class="dossier-lot-right">
+                          <span>$${Number(l.price).toFixed(2)} / ${this.escapeHtml(l.unit)}</span>
+                          <span class="admin-status-badge ${l.paused ? 'pending' : 'verified'}">${l.paused ? 'Pausado' : 'Activo'}</span>
+                        </div>
+                      </div>
+                    `).join("")}
+                  </div>
+                `}
+              </div>
+
+              ${Array.isArray(producer.reviews) && producer.reviews.length > 0 ? `
+                <div class="dossier-section">
+                  <div class="dossier-section-title">Reseñas Verificadas de Compradores</div>
+                  ${producer.reviews.map(r => `
+                    <div class="dossier-review-item">
+                      <strong>${this.escapeHtml(r.user)}</strong> (★ ${r.rating}): "${this.escapeHtml(r.comment)}"
+                    </div>
+                  `).join("")}
+                </div>
+              ` : ""}
+            </div>
+
+            <div class="dossier-footer-actions">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-toggle-producer-verify">
+                ${producer.verified ? 'Pasar a En trámite' : 'Aprobar y Verificar Productor'}
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+                ${Icons.download} Imprimir / Exportar PDF
+              </button>
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-close-dossier">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    this.bindModalClose();
+
+    const closeBtn = document.getElementById("btn-close-dossier");
+    if (closeBtn) closeBtn.addEventListener("click", () => this.closeModal());
+
+    const verifyBtn = document.getElementById("btn-toggle-producer-verify");
+    if (verifyBtn) {
+      verifyBtn.addEventListener("click", () => {
+        const list = store.getProducers();
+        const target = list.find(p => p.id === producerId);
+        if (target) {
+          target.verified = !Boolean(target.verified);
+          store.saveProducers(list);
+          this.showToast(
+            target.verified ? `${target.name} marcado como Verificado` : `${target.name} marcado En trámite`,
+            target.verified ? "success" : "info"
+          );
+          this.render();
+          this.openAdminProducerDossierModal(producerId);
+        }
+      });
+    }
+  }
+
+  openAdminNetworkDossierModal() {
+    const kpis = store.getAdminKPIs();
+    const producers = store.getProducers();
+    const products = store.getProducts();
+    const activeProducts = products.filter(p => !p.paused);
+    const pausedProducts = products.filter(p => p.paused);
+    const youth = store.getYouth()[0];
+    const completedStops = youth.stops.filter(s => s.status === "completed");
+    const orders = store.getConsumerOrders();
+    const municipalitiesCovered = [...new Set(products.map(p => p.municipality))];
+    const generatedAt = new Date().toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" });
+
+    this.modalRoot.innerHTML = `
+      <div class="modal-overlay" id="modal-bg">
+        <div class="modal-dialog dossier-modal-dialog">
+          <div class="modal-dialog-header">
+            <h3 class="modal-dialog-title">Expediente Operativo Generado · Red Zafra</h3>
+            <button type="button" class="modal-dismiss-btn" id="close-modal-x">&times;</button>
+          </div>
+          <div class="modal-dialog-body">
+            <div class="dossier-sheet">
+              <div class="dossier-doc-header">
+                <div>
+                  <div class="dossier-kicker">Coordinación General Zafra · Morelos</div>
+                  <h4 class="dossier-title">Expediente Consolidado de Operación y Trazabilidad</h4>
+                  <div class="dossier-meta">Folio: <strong>EXP-ZAFRA-RED-2026</strong> · Corte generado: ${this.escapeHtml(generatedAt)}</div>
+                </div>
+                <span class="admin-status-badge verified">Vigencia Activa</span>
+              </div>
+
+              <div class="dossier-metrics-grid">
+                <div class="dossier-metric-box">
+                  <span>Padrón Registrado</span>
+                  <strong>${producers.length} parcelas (${producers.filter(p => p.verified).length} verificadas)</strong>
+                </div>
+                <div class="dossier-metric-box">
+                  <span>Catálogo A–I</span>
+                  <strong>${activeProducts.length} activos · ${pausedProducts.length} pausados</strong>
+                </div>
+                <div class="dossier-metric-box">
+                  <span>Cobertura Territorial</span>
+                  <strong>${municipalitiesCovered.length} municipios</strong>
+                </div>
+                <div class="dossier-metric-box">
+                  <span>Tarifas Vigentes</span>
+                  <strong>${Number(kpis.commissionRate ?? 10)}% retención · $${Number(kpis.deliveryFee ?? 25)} envío</strong>
+                </div>
+              </div>
+
+              <div class="dossier-section">
+                <div class="dossier-section-title">1. Padrón de Productores Activos</div>
+                <div class="dossier-lots-list">
+                  ${producers.map(pr => `
+                    <div class="dossier-lot-row">
+                      <div>
+                        <strong>${this.escapeHtml(pr.name)}</strong>
+                        <small>${this.escapeHtml(pr.ranchName)} · ${this.escapeHtml(pr.municipality)} (${pr.yearsFarming} años)</small>
+                      </div>
+                      <div class="dossier-lot-right">
+                        <span class="admin-status-badge ${pr.verified ? 'verified' : 'pending'}">${pr.verified ? 'Verificado' : 'En trámite'}</span>
+                      </div>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+
+              <div class="dossier-section">
+                <div class="dossier-section-title">2. Servicio Social Universitario y Evidencia de Firmas</div>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 8px;">
+                  Prestador activo: <strong>${this.escapeHtml(youth.youthName)}</strong> (${this.escapeHtml(youth.matricula)}) · <strong>${youth.hoursCompleted} / ${youth.totalHoursNeeded} hrs</strong> acreditadas · ${completedStops.length} de ${youth.stops.length} entregas validadas en ruta actual.
+                </p>
+                ${youth.studentSignatureDataUrl ? `
+                  <div class="dossier-signature-block">
+                    <span>Firma registrada del prestador en constancia:</span>
+                    <img src="${youth.studentSignatureDataUrl}" alt="Firma prestador" class="dossier-sig-img" />
+                  </div>
+                ` : ""}
+                <div class="dossier-lots-list">
+                  ${completedStops.map(s => `
+                    <div class="dossier-lot-row">
+                      <div>
+                        <strong>${this.escapeHtml(s.orderId)} · ${this.escapeHtml(s.signerName || s.clientName)}</strong>
+                        <small>${this.escapeHtml(s.address)} (${this.escapeHtml(s.signedAt || 'Validado')})</small>
+                      </div>
+                      <div class="dossier-lot-right">
+                        ${s.signatureDataUrl
+                          ? `<img src="${s.signatureDataUrl}" alt="Firma recepción" class="signature-thumb-img" />`
+                          : `<span class="admin-status-badge verified">Validado</span>`}
+                      </div>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+
+              <div class="dossier-section">
+                <div class="dossier-section-title">3. Pedidos Recientes en Despacho (${orders.length})</div>
+                <div class="dossier-lots-list">
+                  ${orders.map(o => `
+                    <div class="dossier-lot-row">
+                      <div>
+                        <strong>${this.escapeHtml(o.id)}</strong>
+                        <small>${this.escapeHtml(o.deliveryAddress)} · ${this.escapeHtml(o.assignedYouth)}</small>
+                      </div>
+                      <div class="dossier-lot-right">
+                        <span>${this.escapeHtml(o.status)}</span>
+                      </div>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            </div>
+
+            <div class="dossier-footer-actions">
+              <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+                ${Icons.download} Imprimir / Exportar PDF
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-close-dossier">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    this.bindModalClose();
+    const closeBtn = document.getElementById("btn-close-dossier");
+    if (closeBtn) closeBtn.addEventListener("click", () => this.closeModal());
   }
 
   bindModalClose() {
