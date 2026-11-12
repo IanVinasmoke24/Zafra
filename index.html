@@ -548,9 +548,12 @@ const ZAFRA_CATALOG_SPEC = {
 const ZAFRA_REAL_PHOTOS = {
   "Mango Ataulfo": "prod_mango", "Jitomate Saladette": "prod_jitomate", "Nopal Verdura (manojo)": "prod_nopal",
   "Ejote Tierno": "prod_ejote", "Elote Tierno (docena)": "prod_elote", "Alegrías de Amaranto (bolsa 10 pzas)": "prod_amaranto",
-  "Cempasúchil (manojo)": "prod_flores", "Flor de Terciopelo (manojo)": "prod_flores", "Rosas (docena)": "prod_flores",
-  "Gladiolas (docena)": "prod_flores", "Crisantemos (ramo)": "prod_flores", "Maíz Blanco Grano": "prod_elote"
+  "Maíz Blanco Grano": "prod_elote"
 };
+
+function zafraSlug(s) {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
 
 function buildZafraCatalog() {
   const prods = Object.fromEntries(INITIAL_PRODUCERS.map(p => [p.id, p]));
@@ -562,6 +565,7 @@ function buildZafraCatalog() {
       const pr = prods[pid];
       n++;
       const photo = ZAFRA_REAL_PHOTOS[name];
+      const imgPath = photo ? "assets/img/" + photo + ".jpg" : "assets/img/products/" + zafraSlug(name) + ".jpg";
       out.push({
         id: "z-" + n,
         name: name,
@@ -570,7 +574,8 @@ function buildZafraCatalog() {
         municipality: pr.municipality,
         price: price,
         unit: unit,
-        image: photo ? "assets/img/" + photo + ".jpg" : zafraPlaceholder(emoji, cat),
+        image: imgPath,
+        fallbackImage: zafraPlaceholder(emoji, cat),
         isPreventa: /pedido/i.test(availability),
         harvestDate: availability,
         availability: availability,
@@ -1142,7 +1147,7 @@ class DataStore {
 
   init() {
     try {
-      const DATA_VERSION = "zafra_v5_catalogo_completo";
+      const DATA_VERSION = "zafra_v6_fotos_productos";
       if (localStorage.getItem("rm_zafra_version") !== DATA_VERSION) {
         localStorage.setItem("rm_zafra_routes", JSON.stringify(INITIAL_ZAFRA_ROUTES));
         localStorage.setItem("rm_map_municipalities", JSON.stringify(INITIAL_MAP_MUNICIPALITIES));
@@ -1923,7 +1928,7 @@ class App {
     return `
       <article class="product-item" data-product-id="${prod.id}">
         <div class="product-image-container">
-          <img src="${prod.image}" alt="${prod.name}" class="product-img" loading="lazy" />
+          <img src="${prod.image}" alt="${prod.name}" class="product-img" loading="lazy" data-fallback="${prod.fallbackImage || ''}" onerror="if(this.dataset.fallback){this.onerror=null;this.src=this.dataset.fallback;}" />
           ${prod.isPreventa ? `
             <span class="tag-badge">
               ${Icons.clock} Preventa
@@ -2689,7 +2694,7 @@ class App {
         ${products.map(p => `
           <div class="product-item">
             <div class="product-image-container">
-              <img src="${p.image}" alt="${p.name}" class="product-img" />
+              <img src="${p.image}" alt="${p.name}" class="product-img" loading="lazy" data-fallback="${p.fallbackImage || ''}" onerror="if(this.dataset.fallback){this.onerror=null;this.src=this.dataset.fallback;}" />
               <span class="tag-badge">${p.isPreventa ? 'Preventa' : 'Inmediato'}</span>
             </div>
             <div class="product-content">
