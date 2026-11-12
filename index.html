@@ -1443,6 +1443,7 @@ const Icons = {
   truck: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`,
   shield: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
   chevronRight: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`,
+  arrowLeft: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`,
   download: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
   trendingUp: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`,
   user: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
@@ -1465,11 +1466,18 @@ class App {
     this.leafletMap = null;
     this.markersLayer = null;
     this.routeLineLayer = null;
+    this.navHistory = [];
 
     try {
       const initialHash = window.location.hash.replace("#", "");
       if (["inicio", "catalogo", "mapa", "ferias", "pedidos", "perfil"].includes(initialHash)) {
+        this.currentRole = "consumidor";
         this.consumerTab = initialHash;
+      } else if (["productor", "joven", "admin"].includes(initialHash)) {
+        this.currentRole = initialHash;
+      }
+      if (window.history && typeof window.history.replaceState === "function") {
+        window.history.replaceState(this.getNavSnapshot(), "", this.getHashForSnapshot());
       }
     } catch (e) {}
     this.currentTileStyle = "topo";
@@ -1505,14 +1513,252 @@ class App {
       }
     });
 
-    window.addEventListener("hashchange", () => {
+    window.addEventListener("popstate", (e) => {
+      if (e.state && e.state.role && e.state.tab) {
+        const last = this.navHistory[this.navHistory.length - 1];
+        if (last && this.snapshotsEqual(last, e.state)) {
+          this.navHistory.pop();
+        }
+        this.applyNavSnapshot(e.state, false);
+        return;
+      }
       const hash = window.location.hash.replace("#", "");
       if (["inicio", "catalogo", "mapa", "ferias", "pedidos", "perfil"].includes(hash)) {
-        if (this.currentRole === "consumidor" && this.consumerTab !== hash) {
-          this.setConsumerTab(hash, false);
+        if (this.currentRole !== "consumidor" || this.consumerTab !== hash) {
+          this.applyNavSnapshot({ ...this.getNavSnapshot(), role: "consumidor", tab: hash }, false);
+        }
+      } else if (["productor", "joven", "admin"].includes(hash)) {
+        if (this.currentRole !== hash) {
+          this.applyNavSnapshot({ ...this.getNavSnapshot(), role: hash }, false);
         }
       }
     });
+
+    window.addEventListener("hashchange", () => {
+      const hash = window.location.hash.replace("#", "");
+      if (["inicio", "catalogo", "mapa", "ferias", "pedidos", "perfil"].includes(hash)) {
+        if (this.currentRole !== "consumidor" || this.consumerTab !== hash) {
+          this.setConsumerTab(hash, false, false);
+        }
+      } else if (["productor", "joven", "admin"].includes(hash)) {
+        if (this.currentRole !== hash) {
+          this.setRole(hash, false);
+        }
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        if (this.isMapFullscreen) {
+          this.toggleMapFullscreen(false);
+        } else if (this.modalRoot && this.modalRoot.innerHTML) {
+          this.closeModal();
+        }
+      }
+    });
+  }
+
+  getNavSnapshot() {
+    return {
+      role: this.currentRole,
+      tab: this.consumerTab,
+      routeId: this.selectedRouteId,
+      municipality: this.selectedMunicipality,
+      category: this.selectedCategory
+    };
+  }
+
+  getHashForSnapshot(snap = this.getNavSnapshot()) {
+    return snap.role === "consumidor" ? `#${snap.tab}` : `#${snap.role}`;
+  }
+
+  snapshotsEqual(a, b) {
+    return Boolean(
+      a && b &&
+      a.role === b.role &&
+      a.tab === b.tab &&
+      a.routeId === b.routeId &&
+      a.municipality === b.municipality &&
+      a.category === b.category
+    );
+  }
+
+  getSnapshotLabel(snap) {
+    if (!snap) return "Inicio";
+    if (snap.role !== "consumidor") return this.getRoleLabel(snap.role);
+    switch (snap.tab) {
+      case "inicio": return "Inicio";
+      case "catalogo":
+        return snap.municipality && snap.municipality !== "todos"
+          ? `Catálogo · ${snap.municipality}`
+          : "Catálogo";
+      case "mapa":
+        return snap.routeId && snap.routeId !== "all" ? "Mapa (ruta)" : "Mapa";
+      case "ferias": return "Ferias";
+      case "pedidos": return "Mis pedidos";
+      case "perfil": return "Mi entrega";
+      default: return "Inicio";
+    }
+  }
+
+  getBackTargetLabel() {
+    if (this.isMapFullscreen) return "Salir de pantalla completa";
+    if (this.navHistory.length > 0) {
+      const last = this.navHistory[this.navHistory.length - 1];
+      if (
+        last.role === "consumidor" && last.tab === "mapa" &&
+        this.currentRole === "consumidor" && this.consumerTab === "mapa" &&
+        last.routeId === "all" && this.selectedRouteId !== "all"
+      ) {
+        return "Todas las rutas";
+      }
+      return this.getSnapshotLabel(last);
+    }
+    if (this.currentRole === "consumidor" && this.consumerTab === "mapa" && this.selectedRouteId !== "all") {
+      return "Todas las rutas";
+    }
+    if (this.currentRole === "consumidor" && this.consumerTab === "catalogo" && (this.selectedMunicipality !== "todos" || this.selectedCategory !== "todos")) {
+      return "Todo el catálogo";
+    }
+    if (this.currentRole !== "consumidor" || this.consumerTab !== "inicio") {
+      return "Inicio";
+    }
+    return "";
+  }
+
+  recordNavTransition(prevSnap) {
+    const nextSnap = this.getNavSnapshot();
+    if (this.snapshotsEqual(prevSnap, nextSnap)) return;
+    this.navHistory.push(prevSnap);
+    if (this.navHistory.length > 30) {
+      this.navHistory.shift();
+    }
+    try {
+      if (window.history && typeof window.history.pushState === "function") {
+        window.history.pushState(nextSnap, "", this.getHashForSnapshot(nextSnap));
+      }
+    } catch (e) {}
+  }
+
+  applyNavSnapshot(snap, syncHashReplace = true) {
+    if (!snap) return;
+    this.currentRole = snap.role || "consumidor";
+    this.consumerTab = snap.tab || "inicio";
+    this.selectedRouteId = snap.routeId || "all";
+    this.selectedMunicipality = snap.municipality || "todos";
+    this.selectedCategory = snap.category || "todos";
+    this.isMapFullscreen = false;
+    try {
+      document.body.style.overflow = "";
+      localStorage.setItem("rm_current_role", this.currentRole);
+    } catch (e) {}
+    if (syncHashReplace) {
+      try {
+        const hash = this.getHashForSnapshot();
+        if (window.history && typeof window.history.replaceState === "function") {
+          window.history.replaceState(this.getNavSnapshot(), "", hash);
+        } else if (window.location.hash !== hash) {
+          window.location.hash = hash.slice(1);
+        }
+      } catch (e) {}
+    }
+    this.render();
+    if (this.currentRole === "consumidor" && this.consumerTab === "mapa") {
+      setTimeout(() => this.setupLeafletMap(), 60);
+    }
+  }
+
+  goBack() {
+    if (this.isMapFullscreen) {
+      this.toggleMapFullscreen(false);
+      return;
+    }
+    if (this.navHistory.length > 0) {
+      const prev = this.navHistory.pop();
+      this.applyNavSnapshot(prev, true);
+      return;
+    }
+    if (this.currentRole === "consumidor" && this.consumerTab === "mapa" && this.selectedRouteId !== "all") {
+      this.selectMapRoute("all", false);
+      return;
+    }
+    if (this.currentRole === "consumidor" && this.consumerTab === "catalogo" && (this.selectedMunicipality !== "todos" || this.selectedCategory !== "todos")) {
+      this.selectedMunicipality = "todos";
+      this.selectedCategory = "todos";
+      this.searchQuery = "";
+      this.applyNavSnapshot(this.getNavSnapshot(), true);
+      return;
+    }
+    if (this.currentRole !== "consumidor" || this.consumerTab !== "inicio") {
+      this.currentRole = "consumidor";
+      this.consumerTab = "inicio";
+      this.applyNavSnapshot(this.getNavSnapshot(), true);
+    }
+  }
+
+  selectMapRoute(routeId, pushNav = true) {
+    const prevSnap = this.getNavSnapshot();
+    this.selectedRouteId = routeId;
+    if (pushNav) {
+      this.recordNavTransition(prevSnap);
+    }
+    this.appEl.querySelectorAll("#map-route-selector [data-route-id]").forEach(b => {
+      b.classList.toggle("active", b.dataset.routeId === this.selectedRouteId);
+    });
+    const routes = store.getZafraRoutes();
+    const activeRoute = this.selectedRouteId === "all" ? null : routes.find(r => r.id === this.selectedRouteId);
+    const bannerContainer = document.getElementById("route-detail-banner-container");
+    if (bannerContainer) {
+      bannerContainer.innerHTML = this.renderRouteDetailBanner(activeRoute);
+    }
+    this.updateBackBar();
+    if (this.leafletMap) {
+      this.renderMapEntities();
+      this.leafletMap.invalidateSize();
+    } else {
+      this.setupLeafletMap();
+    }
+  }
+
+  toggleMapFullscreen(forceState) {
+    const wrapper = document.getElementById("map-canvas-wrapper");
+    if (!wrapper) return;
+    this.isMapFullscreen = typeof forceState === "boolean" ? forceState : !this.isMapFullscreen;
+    wrapper.classList.toggle("is-fullscreen", this.isMapFullscreen);
+    document.body.style.overflow = this.isMapFullscreen ? "hidden" : "";
+    if (this.leafletMap) {
+      setTimeout(() => this.leafletMap.invalidateSize(), 150);
+    }
+  }
+
+  renderBackBar() {
+    if (this.currentRole === "consumidor" && this.consumerTab === "inicio") {
+      return "";
+    }
+    const targetLabel = this.getBackTargetLabel();
+    return `
+      <div class="back-nav-bar">
+        <button type="button" class="btn-back-nav" id="app-back-btn" aria-label="Regresar atrás">
+          ${Icons.arrowLeft}
+          <span>Regresar</span>
+          ${targetLabel ? `<small class="back-nav-hint">· ${targetLabel}</small>` : ""}
+        </button>
+      </div>
+    `;
+  }
+
+  updateBackBar() {
+    const container = document.getElementById("back-nav-container");
+    if (!container) return;
+    container.innerHTML = this.renderBackBar();
+    this.bindBackBarEvents();
+  }
+
+  bindBackBarEvents() {
+    const backBtn = document.getElementById("app-back-btn");
+    if (backBtn) {
+      backBtn.addEventListener("click", () => this.goBack());
+    }
   }
 
   updateOnlineStatus() {
@@ -1529,11 +1775,20 @@ class App {
     }
   }
 
-  setRole(role) {
+  setRole(role, pushNav = true) {
+    const prevSnap = this.getNavSnapshot();
     this.currentRole = role;
+    this.isMapFullscreen = false;
+    try { document.body.style.overflow = ""; } catch (e) {}
     localStorage.setItem("rm_current_role", role);
+    if (pushNav) {
+      this.recordNavTransition(prevSnap);
+    }
     this.showToast(`Vista operacional activa: ${this.getRoleLabel(role)}`, "info");
     this.render();
+    if (this.currentRole === "consumidor" && this.consumerTab === "mapa") {
+      setTimeout(() => this.setupLeafletMap(), 60);
+    }
   }
 
   getRoleLabel(role) {
@@ -1546,10 +1801,16 @@ class App {
     }
   }
 
-  setConsumerTab(tab, updateHash = true) {
+  setConsumerTab(tab, updateHash = true, pushNav = true) {
+    const prevSnap = this.getNavSnapshot();
+    this.currentRole = "consumidor";
     this.consumerTab = tab;
-    if (updateHash && window.location.hash !== `#${tab}`) {
-      window.location.hash = tab;
+    this.isMapFullscreen = false;
+    try { document.body.style.overflow = ""; } catch (e) {}
+    if (pushNav) {
+      this.recordNavTransition(prevSnap);
+    } else if (updateHash && window.location.hash !== `#${tab}`) {
+      try { window.location.hash = tab; } catch (e) {}
     }
     this.render();
     if (tab === "mapa") {
@@ -1558,8 +1819,13 @@ class App {
   }
 
   filterCatalogByMuni(muniName) {
+    const prevSnap = this.getNavSnapshot();
+    this.currentRole = "consumidor";
     this.selectedMunicipality = muniName;
-    this.setConsumerTab("catalogo");
+    this.selectedCategory = "todos";
+    this.consumerTab = "catalogo";
+    this.recordNavTransition(prevSnap);
+    this.render();
     this.showToast(`Filtrando cosechas de ${muniName}`, "info");
   }
 
@@ -1636,12 +1902,15 @@ class App {
 
       ${this.renderSubnav()}
 
+      <div id="back-nav-container">${this.renderBackBar()}</div>
+
       <main class="main-wrapper" id="main-view">
         ${this.renderActiveRoleView()}
       </main>
     `;
 
     this.bindRoleBarEvents();
+    this.bindBackBarEvents();
     this.bindRoleViewEvents();
   }
 
@@ -1690,7 +1959,6 @@ class App {
     if (brandHomeLink) {
       brandHomeLink.addEventListener("click", (e) => {
         e.preventDefault();
-        this.setRole("consumidor");
         this.setConsumerTab("inicio");
       });
     }
@@ -2019,6 +2287,11 @@ class App {
         <div class="map-canvas-container" id="map-canvas-wrapper">
           <div id="zafra-leaflet-map"></div>
 
+          <button type="button" class="map-back-fullscreen-btn" id="map-fullscreen-back-btn" title="Salir de pantalla completa">
+            ${Icons.arrowLeft}
+            <span>Regresar</span>
+          </button>
+
           <button class="map-overlay-btn map-fullscreen-btn" id="map-fullscreen-toggle" title="Pantalla completa del mapa">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
@@ -2112,6 +2385,11 @@ class App {
 
     return `
       <div class="route-detail-banner">
+        <div class="route-banner-back-row">
+          <button type="button" class="btn btn-secondary btn-sm" id="map-route-back-btn">
+            ${Icons.arrowLeft} Regresar a todas las rutas
+          </button>
+        </div>
         <div>
           <div class="route-banner-block-title" style="color: ${activeRoute.color};">
             ${Icons.mapPin} ${activeRoute.name}
@@ -2948,6 +3226,7 @@ class App {
         this.selectedMunicipality = pill.dataset.muni;
         const container = document.getElementById("main-view");
         if (container) container.innerHTML = this.renderConsumerCatalog();
+        this.updateBackBar();
         this.bindRoleViewEvents();
       });
     });
@@ -2957,6 +3236,7 @@ class App {
         this.selectedCategory = pill.dataset.cat;
         const container = document.getElementById("main-view");
         if (container) container.innerHTML = this.renderConsumerCatalog();
+        this.updateBackBar();
         this.bindRoleViewEvents();
       });
     });
@@ -2969,6 +3249,7 @@ class App {
         this.searchQuery = "";
         const container = document.getElementById("main-view");
         if (container) container.innerHTML = this.renderConsumerCatalog();
+        this.updateBackBar();
         this.bindRoleViewEvents();
       });
     }
@@ -2976,44 +3257,21 @@ class App {
     // Map Route Selector Pills (Smooth update without rebuilding map)
     this.appEl.querySelectorAll("#map-route-selector [data-route-id]").forEach(btn => {
       btn.addEventListener("click", () => {
-        this.selectedRouteId = btn.dataset.routeId;
-        
-        // Update pills visual state
-        this.appEl.querySelectorAll("#map-route-selector [data-route-id]").forEach(b => {
-          b.classList.toggle("active", b.dataset.routeId === this.selectedRouteId);
-        });
-
-        // Update Route Details Banner
-        const routes = store.getZafraRoutes();
-        const activeRoute = this.selectedRouteId === "all" ? null : routes.find(r => r.id === this.selectedRouteId);
-        const bannerContainer = document.getElementById("route-detail-banner-container");
-        if (bannerContainer) {
-          bannerContainer.innerHTML = this.renderRouteDetailBanner(activeRoute);
-        }
-
-        // Smoothly update markers and polyline on existing map
-        if (this.leafletMap) {
-          this.renderMapEntities();
-          this.leafletMap.invalidateSize();
-        } else {
-          this.setupLeafletMap();
-        }
+        this.selectMapRoute(btn.dataset.routeId);
       });
     });
 
-    // Fullscreen Toggle
+    // Fullscreen Toggle & Back button
     const fsBtn = document.getElementById("map-fullscreen-toggle");
     if (fsBtn) {
       fsBtn.addEventListener("click", () => {
-        const wrapper = document.getElementById("map-canvas-wrapper");
-        if (wrapper) {
-          this.isMapFullscreen = !this.isMapFullscreen;
-          wrapper.classList.toggle("is-fullscreen", this.isMapFullscreen);
-          document.body.style.overflow = this.isMapFullscreen ? "hidden" : "";
-          if (this.leafletMap) {
-            setTimeout(() => this.leafletMap.invalidateSize(), 150);
-          }
-        }
+        this.toggleMapFullscreen();
+      });
+    }
+    const fsBackBtn = document.getElementById("map-fullscreen-back-btn");
+    if (fsBackBtn) {
+      fsBackBtn.addEventListener("click", () => {
+        this.toggleMapFullscreen(false);
       });
     }
 
@@ -3025,15 +3283,18 @@ class App {
       });
     }
 
-    // Clic en tarjetas de ruta del resumen del mapa
+    // Clic en tarjetas de ruta o botón regresar en el detalle de ruta
     const routeBannerContainer = document.getElementById("route-detail-banner-container");
     if (routeBannerContainer) {
       routeBannerContainer.addEventListener("click", (e) => {
+        const backAllBtn = e.target.closest("#map-route-back-btn");
+        if (backAllBtn) {
+          this.selectMapRoute("all");
+          return;
+        }
         const card = e.target.closest("[data-pick-route]");
         if (!card) return;
-        const rid = card.dataset.pickRoute;
-        const pill = this.appEl.querySelector(`#map-route-selector [data-route-id="${rid}"]`);
-        if (pill) pill.click();
+        this.selectMapRoute(card.dataset.pickRoute);
       });
     }
 

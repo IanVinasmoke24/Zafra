@@ -433,3 +433,90 @@ img { max-width: 100%; }
   .zafra-map-marker .marker-top { font-size: 0.68rem; }
   .zafra-map-marker .marker-sub { font-size: 0.6rem; }
 }
+
+/* ===== Navegación: botón Regresar atrás ===== */
+.back-nav-bar {
+  max-width: 1360px;
+  width: 100%;
+  margin: 14px auto -10px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+}
+.btn-back-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.14s ease, background 0.14s ease, color 0.14s ease;
+}
+.btn-back-nav:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  background: var(--brand-surface-tint);
+}
+.back-nav-hint {
+  font-weight: 500;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.map-back-fullscreen-btn {
+  display: none;
+  position: absolute;
+  top: 12px;
+  left: 54px;
+  z-index: 1005;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  background: var(--ui-surface);
+  color: var(--text-main);
+  border: 1px solid var(--ui-border-strong);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(42, 34, 24, 0.22);
+}
+.map-canvas-container.is-fullscreen .map-back-fullscreen-btn {
+  display: inline-flex;
+}
+.map-back-fullscreen-btn:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+.route-banner-back-row {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--ui-border);
+}
+.route-banner-back-row .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 768px) {
+  .back-nav-bar {
+    margin: 10px auto -4px;
+    padding: 0 12px;
+  }
+  .btn-back-nav {
+    min-height: 36px;
+    padding: 7px 12px;
+    font-size: 0.82rem;
+  }
+}
