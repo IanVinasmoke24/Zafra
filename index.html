@@ -1462,7 +1462,6 @@ class App {
     this.searchQuery = "";
     this.selectedRegionId = "cuautla";
     this.selectedRouteId = "all";
-    this.showAllMunicipalities = false;
     this.leafletMap = null;
     this.markersLayer = null;
     this.routeLineLayer = null;
@@ -1473,7 +1472,7 @@ class App {
         this.consumerTab = initialHash;
       }
     } catch (e) {}
-    this.currentTileStyle = "satellite-dark";
+    this.currentTileStyle = "topo";
     this.currentTileLayer = null;
     this.isMapFullscreen = false;
 
@@ -1988,19 +1987,17 @@ class App {
       <div class="page-header">
         <div>
           <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700;">
-            Cartografía Oficial Zafra · Estado de Morelos
+            Mapa Topográfico · Estado de Morelos
           </div>
-          <h2 class="page-title">Rutas Productivas y Ubicaciones para Talleres</h2>
-          <p class="page-subtitle">Organización regional para articulación de talleres formativos, búsqueda de productores y acopio directo</p>
+          <h2 class="page-title">Rutas, Productos y Talleres por Región</h2>
+          <p class="page-subtitle">Cada lugar indica qué hay en esa región, a qué ruta pertenece y de qué son sus talleres</p>
         </div>
         <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">
-          15 municipios prioritarios vinculados
+          ${municipalities.length} lugares en ${routes.length} rutas
         </div>
       </div>
 
-      <!-- Outer Dark Map Module Container (Matches User Image) -->
       <div class="map-module-wrapper">
-        <!-- Top Toolbar with 6 Route Pills -->
         <div class="map-control-header">
           <div class="map-route-pills" id="map-route-selector">
             <button class="route-pill-btn ${this.selectedRouteId === 'all' ? 'active' : ''}" data-route-id="all">
@@ -2014,80 +2011,27 @@ class App {
             `).join("")}
           </div>
 
-          <div style="font-size: 0.75rem; color: #94a3b8; display: flex; align-items: center; gap: 8px;">
-            <span>★ Calificación promedio de parcelas</span>
+          <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
+            <span>Toca cualquier lugar para ver productos y talleres</span>
           </div>
         </div>
 
-        <!-- Leaflet Map Canvas (Dark Satellite / CartoDB Dark Matter) -->
         <div class="map-canvas-container" id="map-canvas-wrapper">
-          <div id="zafra-leaflet-map" class="${this.currentTileStyle === 'satellite-dark' ? 'satellite-dark-mode' : ''}"></div>
+          <div id="zafra-leaflet-map"></div>
 
-          <!-- Top-Right Fullscreen Expand Button matching Image -->
           <button class="map-overlay-btn map-fullscreen-btn" id="map-fullscreen-toggle" title="Pantalla completa del mapa">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
             </svg>
           </button>
 
-          <!-- Top-Left Tile API Switcher -->
-          <div class="map-style-switcher" id="map-style-switcher">
-            <button class="map-style-btn ${this.currentTileStyle === 'satellite-dark' ? 'active' : ''}" data-style="satellite-dark">
-              <span>Satelital Nocturno</span>
-            </button>
-            <button class="map-style-btn ${this.currentTileStyle === 'carto-dark' ? 'active' : ''}" data-style="carto-dark">
-              <span>Dark Matter</span>
-            </button>
-            <button class="map-style-btn ${this.currentTileStyle === 'osm' ? 'active' : ''}" data-style="osm">
-              <span>Topográfico</span>
-            </button>
-          </div>
-
-          <!-- Bottom-Right Info Icon matching Image -->
-          <div class="map-overlay-info" id="map-info-toggle" title="Cartografía Oficial Zafra · ESRI Satellite / CartoDB / INEGI Morelos">
+          <div class="map-overlay-info" id="map-info-toggle" title="Mapa Topográfico Zafra · Morelos">
             <span>i</span>
           </div>
         </div>
 
-        <!-- Route Details Banner Container -->
         <div id="route-detail-banner-container">
           ${this.renderRouteDetailBanner(activeRoute)}
-        </div>
-
-        <!-- Dark Data Table Matching the User's Image -->
-        <div class="dark-table-section">
-          <div class="dark-table-header-title">Principales productos que puede buscar Zafra</div>
-          <div class="dark-table-subtitle">Padrón de municipios y vocación agropecuaria identificada en Morelos</div>
-
-          <table class="dark-products-table">
-            <thead>
-              <tr>
-                <th style="width: 220px;">Municipio</th>
-                <th>Principales productos que puede buscar Zafra</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${(this.showAllMunicipalities ? municipalities : municipalities.slice(0, 15)).map(m => `
-                <tr class="dark-table-row" data-muni="${m.name}" style="cursor: pointer;" title="Hacer clic para enfocar en el mapa">
-                  <td class="col-muni">
-                    ${m.num}. ${m.name}
-                  </td>
-                  <td class="col-prod">
-                    ${m.productsSummary}
-                  </td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-
-          <div style="display: flex; justify-content: center; margin-top: 14px;">
-            <button class="dark-table-expand-indicator" id="toggle-muni-expand-btn" title="${this.showAllMunicipalities ? 'Ver solo los 15 prioritarios' : 'Desplegar todos los municipios de las 6 rutas'}">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: ${this.showAllMunicipalities ? 'rotate(180deg)' : 'none'}; transition: transform 0.2s ease;">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <polyline points="19 12 12 19 5 12"></polyline>
-              </svg>
-            </button>
-          </div>
         </div>
       </div>
     `;
@@ -2146,11 +2090,21 @@ class App {
 
   renderRouteDetailBanner(activeRoute) {
     if (!activeRoute) {
+      const routes = store.getZafraRoutes();
       return `
         <div class="route-detail-banner" style="grid-template-columns: 1fr;">
-          <div style="font-size: 0.82rem; color: #94a3b8; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-            <span>Selecciona una de las <strong>6 Rutas de Zafra</strong> en la barra superior para ver sus talleres formativos específicos y trazado en el mapa.</span>
-            <span style="color: #cbd5e1; font-size: 0.75rem;">* Ubicaciones sujetas a confirmación con productores anfitriones</span>
+          <div class="map-routes-overview-grid">
+            ${routes.map(r => `
+              <button type="button" class="route-overview-card" data-pick-route="${r.id}">
+                <div class="route-overview-head">
+                  <span class="route-color-dot" style="background: ${r.color};"></span>
+                  <strong>${r.name}</strong>
+                </div>
+                <div class="route-overview-line"><span>Lugares:</span> ${r.locations.join(", ")}</div>
+                <div class="route-overview-line"><span>Qué hay:</span> ${r.products.join(", ")}</div>
+                <div class="route-overview-line"><span>Talleres:</span> ${r.workshops.join(" · ")}</div>
+              </button>
+            `).join("")}
           </div>
         </div>
       `;
@@ -2162,21 +2116,21 @@ class App {
           <div class="route-banner-block-title" style="color: ${activeRoute.color};">
             ${Icons.mapPin} ${activeRoute.name}
           </div>
-          <div style="font-size: 0.82rem; color: #cbd5e1; margin-bottom: 6px; line-height: 1.4;">
+          <div style="font-size: 0.84rem; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.4;">
             ${activeRoute.description}
           </div>
-          <div style="font-size: 0.74rem; color: #94a3b8;">
-            <strong>Sedes anfitrionas:</strong> ${activeRoute.locations.join(", ")}
+          <div style="font-size: 0.78rem; color: var(--text-muted);">
+            <strong>Sedes en ruta:</strong> ${activeRoute.locations.join(", ")}
           </div>
         </div>
 
         <div>
           <div class="route-banner-block-title">
-            ${Icons.calendar} Talleres que Imparte la Ruta
+            ${Icons.calendar} Talleres de esta ruta
           </div>
           <div class="route-tags-flex">
             ${activeRoute.workshops.map(w => `
-              <span class="route-tag-pill" style="border-left: 2px solid ${activeRoute.color};">
+              <span class="route-tag-pill" style="border-left: 3px solid ${activeRoute.color};">
                 ${w}
               </span>
             `).join("")}
@@ -2185,7 +2139,7 @@ class App {
 
         <div>
           <div class="route-banner-block-title">
-            ${Icons.packageIcon} Productos Característicos
+            ${Icons.packageIcon} Qué hay en la región
           </div>
           <div class="route-tags-flex">
             ${activeRoute.products.map(p => `
@@ -2205,9 +2159,9 @@ class App {
 
     if (typeof L === "undefined") {
       mapEl.innerHTML = `
-        <div style="color: #94a3b8; padding: 40px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-          <div style="font-weight: 600; font-size: 1rem; margin-bottom: 8px; color: #ffffff;">Conectando con la API Cartográfica de Morelos...</div>
-          <div style="font-size: 0.8rem; color: #64748b;">Descargando capas satelitales y vectoriales de la red Zafra.</div>
+        <div style="color: var(--text-muted); padding: 40px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+          <div style="font-weight: 600; font-size: 1rem; margin-bottom: 8px; color: var(--text-main);">Cargando mapa topográfico de Morelos...</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Obteniendo relieve, rutas y sedes de la red Zafra.</div>
         </div>
       `;
       setTimeout(() => this.setupLeafletMap(), 250);
@@ -2226,14 +2180,13 @@ class App {
       attributionControl: false
     }).setView([18.80, -99.02], 10);
 
-    this.setMapTileLayer(this.currentTileStyle || "satellite-dark");
+    this.setMapTileLayer("topo");
 
     this.markersLayer = L.layerGroup().addTo(this.leafletMap);
     this.routeLineLayer = L.layerGroup().addTo(this.leafletMap);
 
     this.renderMapEntities();
 
-    // Critical Leaflet resize invalidation to prevent blank or clipped tiles
     this.leafletMap.whenReady(() => {
       this.leafletMap.invalidateSize();
     });
@@ -2245,7 +2198,7 @@ class App {
     }, 450);
   }
 
-  setMapTileLayer(styleName) {
+  setMapTileLayer(styleName = "topo") {
     if (!this.leafletMap) return;
     this.currentTileStyle = styleName;
 
@@ -2254,41 +2207,24 @@ class App {
       this.currentTileLayer = null;
     }
 
-    const mapContainer = document.getElementById("zafra-leaflet-map");
-
-    if (styleName === "satellite-dark") {
-      if (mapContainer) mapContainer.classList.add("satellite-dark-mode");
-      this.currentTileLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
-        maxZoom: 18,
-        attribution: "Esri Satellite Imagery"
-      });
-    } else if (styleName === "carto-dark") {
-      if (mapContainer) mapContainer.classList.remove("satellite-dark-mode");
-      this.currentTileLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-        maxZoom: 18,
-        subdomains: "abcd",
-        attribution: "CartoDB Dark Matter"
-      });
-    } else {
-      if (mapContainer) mapContainer.classList.remove("satellite-dark-mode");
+    if (styleName === "osm") {
       this.currentTileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 18,
         attribution: "OpenStreetMap"
       });
+    } else {
+      this.currentTileLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
+        maxZoom: 18,
+        attribution: "Esri World Topo Map"
+      });
+      this.currentTileLayer.on("tileerror", () => {
+        if (this.currentTileStyle !== "osm") {
+          this.setMapTileLayer("osm");
+        }
+      });
     }
 
     this.currentTileLayer.addTo(this.leafletMap);
-
-    this.currentTileLayer.on("tileerror", () => {
-      console.warn("Tile error on " + styleName + ", falling back to CartoDB Dark Matter.");
-      if (styleName !== "carto-dark") {
-        this.setMapTileLayer("carto-dark");
-      }
-    });
-
-    document.querySelectorAll("#map-style-switcher .map-style-btn").forEach(btn => {
-      btn.classList.toggle("active", btn.dataset.style === styleName);
-    });
   }
 
   renderMapEntities() {
@@ -2301,49 +2237,81 @@ class App {
     const routes = store.getZafraRoutes();
     const activeRoute = this.selectedRouteId === "all" ? null : routes.find(r => r.id === this.selectedRouteId);
 
-    // Custom dark pill markers matching user screenshot
     municipalities.forEach(m => {
+      const mRoutes = routes.filter(r => m.routeIds.includes(r.id));
       const isIncluded = !activeRoute || m.routeIds.includes(this.selectedRouteId);
+      const focusRoute = activeRoute && isIncluded ? activeRoute : mRoutes[0];
+      const dotColor = focusRoute ? focusRoute.color : "#2f5d3a";
+
+      const workshops = [...new Set(mRoutes.flatMap(r => r.workshops))];
+      const routeShort = mRoutes.map(r => r.shortName).join(" · ");
+      const shortProducts = m.productsSummary.replace(/\.$/, "");
+      const labelSub = activeRoute && isIncluded
+        ? `${shortProducts} · Talleres: ${activeRoute.workshops.slice(0, 2).join(", ")}`
+        : `${shortProducts} · ${routeShort}`;
 
       const customIcon = L.divIcon({
         className: "zafra-marker-wrapper",
         html: `
-          <div class="zafra-map-marker ${isIncluded ? 'active' : ''}" style="${!isIncluded ? 'opacity: 0.35; filter: grayscale(0.8);' : ''}" data-muni="${m.name}">
-            <span class="star-score">★ ${m.rating.toFixed(1)}</span>
-            <span>${m.name}</span>
+          <div class="zafra-map-marker ${isIncluded ? 'active' : 'muted'}" data-muni="${m.name}">
+            <div class="marker-top">
+              <span class="marker-dot" style="background: ${dotColor};"></span>
+              <span class="marker-name">${m.name}</span>
+              <span class="star-score">★ ${m.rating.toFixed(1)}</span>
+            </div>
+            <div class="marker-sub">${labelSub}</div>
           </div>
         `,
         iconSize: null,
-        iconAnchor: [38, 12]
+        iconAnchor: [55, 18]
       });
 
       const marker = L.marker([m.lat, m.lng], { icon: customIcon }).addTo(this.markersLayer);
-      
+
+      marker.bindTooltip(`
+        <div class="zafra-map-tooltip">
+          <strong>${m.name}</strong> · ${routeShort}<br/>
+          <span><b>Qué hay:</b> ${m.productsSummary}</span><br/>
+          <span><b>Talleres:</b> ${workshops.slice(0, 3).join(", ")}</span>
+        </div>
+      `, { direction: "top", offset: [0, -14] });
+
       marker.bindPopup(`
-        <div style="font-family: var(--font-sans); padding: 4px; min-width: 190px;">
-          <div style="font-weight: 700; font-size: 13px; color: #ffffff; margin-bottom: 2px;">★ ${m.rating.toFixed(1)} ${m.name}</div>
-          <div style="font-size: 11px; color: #94a3b8; line-height: 1.4; margin-bottom: 8px;">${m.productsSummary}</div>
-          <button class="btn btn-primary btn-sm" onclick="window.app.filterCatalogByMuni('${m.name}')" style="width: 100%; font-size: 11px; padding: 4px 8px;">
-            Ver Cosechas en Catálogo
+        <div class="zafra-map-popup">
+          <div class="zafra-popup-title">${m.name} <span class="zafra-popup-score">★ ${m.rating.toFixed(1)}</span></div>
+          <div class="zafra-popup-routes">
+            ${mRoutes.map(r => `<span class="zafra-popup-route-tag" style="border-left: 3px solid ${r.color};">${r.name}</span>`).join("")}
+          </div>
+          <div class="zafra-popup-block">
+            <div class="zafra-popup-label">Qué hay en esta región</div>
+            <p>${m.productsSummary}</p>
+          </div>
+          <div class="zafra-popup-block">
+            <div class="zafra-popup-label">Talleres en esta ruta</div>
+            <p>${workshops.join(" · ")}</p>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="window.app.filterCatalogByMuni('${m.name}')" style="width: 100%; font-size: 12px; padding: 6px 10px;">
+            Ver productos de ${m.name}
           </button>
         </div>
       `);
     });
 
-    // Draw route polyline
     if (activeRoute) {
       const routeMunis = municipalities.filter(m => m.routeIds.includes(this.selectedRouteId));
       if (routeMunis.length > 1) {
         const coords = routeMunis.map(m => [m.lat, m.lng]);
         L.polyline(coords, {
           color: activeRoute.color,
-          weight: 3.5,
+          weight: 4,
           opacity: 0.9,
           dashArray: "6, 8"
         }).addTo(this.routeLineLayer);
 
-        this.leafletMap.fitBounds(coords, { padding: [40, 40], maxZoom: 12 });
+        this.leafletMap.fitBounds(coords, { padding: [45, 45], maxZoom: 12 });
       }
+    } else {
+      this.leafletMap.setView([18.80, -99.02], 10);
     }
   }
 
@@ -3033,15 +3001,6 @@ class App {
       });
     });
 
-    // Map Style Switcher (Satelital Nocturno, Dark Matter, Topográfico)
-    this.appEl.querySelectorAll("#map-style-switcher [data-style]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const style = btn.dataset.style;
-        this.setMapTileLayer(style);
-        this.showToast(`Capa activa: ${style === 'satellite-dark' ? 'Satelital Nocturno' : style === 'carto-dark' ? 'Dark Matter' : 'Topográfico'}`, "info");
-      });
-    });
-
     // Fullscreen Toggle
     const fsBtn = document.getElementById("map-fullscreen-toggle");
     if (fsBtn) {
@@ -3062,32 +3021,19 @@ class App {
     const infoBtn = document.getElementById("map-info-toggle");
     if (infoBtn) {
       infoBtn.addEventListener("click", () => {
-        this.showToast("API Satelital Zafra · Capas ESRI / CartoDB / OSM / INEGI Morelos", "info");
+        this.showToast("Mapa Topográfico Zafra · Relieve, rutas productivas y talleres de Morelos", "info");
       });
     }
 
-    // Dark Map Table Row Clicks
-    this.bindDarkTableRowClicks();
-
-    // Toggle Full Municipalities Table
-    const toggleExpandBtn = document.getElementById("toggle-muni-expand-btn");
-    if (toggleExpandBtn) {
-      toggleExpandBtn.addEventListener("click", () => {
-        this.showAllMunicipalities = !this.showAllMunicipalities;
-        const municipalities = store.getMapMunicipalities();
-        const tbody = document.querySelector(".dark-products-table tbody");
-        if (tbody) {
-          tbody.innerHTML = (this.showAllMunicipalities ? municipalities : municipalities.slice(0, 15)).map(m => `
-            <tr class="dark-table-row" data-muni="${m.name}" style="cursor: pointer;" title="Hacer clic para enfocar en el mapa">
-              <td class="col-muni">${m.num}. ${m.name}</td>
-              <td class="col-prod">${m.productsSummary}</td>
-            </tr>
-          `).join("");
-          this.bindDarkTableRowClicks();
-        }
-        toggleExpandBtn.title = this.showAllMunicipalities ? "Ver solo los 15 prioritarios" : "Desplegar todos los municipios de las 6 rutas";
-        const svg = toggleExpandBtn.querySelector("svg");
-        if (svg) svg.style.transform = this.showAllMunicipalities ? "rotate(180deg)" : "none";
+    // Clic en tarjetas de ruta del resumen del mapa
+    const routeBannerContainer = document.getElementById("route-detail-banner-container");
+    if (routeBannerContainer) {
+      routeBannerContainer.addEventListener("click", (e) => {
+        const card = e.target.closest("[data-pick-route]");
+        if (!card) return;
+        const rid = card.dataset.pickRoute;
+        const pill = this.appEl.querySelector(`#map-route-selector [data-route-id="${rid}"]`);
+        if (pill) pill.click();
       });
     }
 
@@ -3175,20 +3121,6 @@ class App {
     if (homeQuickMap) {
       homeQuickMap.addEventListener("click", () => this.setConsumerTab("mapa"));
     }
-  }
-
-  bindDarkTableRowClicks() {
-    this.appEl.querySelectorAll(".dark-table-row").forEach(row => {
-      row.addEventListener("click", () => {
-        const muniName = row.dataset.muni;
-        const municipalities = store.getMapMunicipalities();
-        const target = municipalities.find(m => m.name === muniName);
-        if (target && this.leafletMap) {
-          this.leafletMap.flyTo([target.lat, target.lng], 12, { duration: 0.8 });
-          this.showToast(`Enfocando municipio: ${target.name} (★ ${target.rating.toFixed(1)})`, "info");
-        }
-      });
-    });
   }
 
   // ==========================================================================

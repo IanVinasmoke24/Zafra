@@ -239,3 +239,197 @@ img { max-width: 100%; }
 .catalog-section-title small { margin-left: auto; font-family: var(--font-sans); font-size: 0.78rem; font-weight: 500; color: var(--text-muted); }
 .product-delivery-info { font-size: 0.74rem; color: var(--text-muted); margin: 2px 0 8px; padding-top: 6px; border-top: 1px dashed var(--ui-border-strong); }
 .filter-segments-row { flex-wrap: wrap; }
+
+/* ===== Mapa topográfico: marcadores con región, ruta y talleres ===== */
+.zafra-map-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  max-width: 165px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background: rgba(255, 253, 248, 0.96);
+  border: 1px solid var(--ui-border-strong);
+  color: var(--text-main);
+  box-shadow: 0 2px 6px rgba(42, 34, 24, 0.16);
+  white-space: normal;
+  line-height: 1.2;
+  transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+}
+.zafra-map-marker:hover,
+.zafra-map-marker.active:hover {
+  transform: translateY(-1px);
+  border-color: var(--brand-primary);
+  box-shadow: 0 4px 12px rgba(42, 34, 24, 0.24);
+  z-index: 600;
+}
+.zafra-map-marker.active {
+  border-color: var(--brand-primary);
+  background: rgba(255, 253, 248, 0.98);
+}
+.zafra-map-marker.muted {
+  opacity: 0.52;
+  background: rgba(246, 240, 228, 0.88);
+}
+.zafra-map-marker .marker-top {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.zafra-map-marker .marker-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.zafra-map-marker .marker-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.zafra-map-marker .star-score {
+  margin-left: auto;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--earth-accent);
+  white-space: nowrap;
+}
+.zafra-map-marker .marker-sub {
+  width: 100%;
+  font-size: 0.64rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--ui-surface) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(42, 34, 24, 0.18) !important;
+}
+.leaflet-popup-tip {
+  background: var(--ui-surface) !important;
+  border: 1px solid var(--ui-border-strong);
+}
+.leaflet-tooltip.zafra-map-tooltip {
+  background: var(--ui-surface);
+  color: var(--text-main);
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 6px;
+  padding: 6px 9px;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  box-shadow: 0 4px 12px rgba(42, 34, 24, 0.16);
+}
+.zafra-map-popup {
+  min-width: 210px;
+  max-width: 270px;
+  font-family: var(--font-sans);
+  color: var(--text-main);
+}
+.zafra-popup-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.zafra-popup-score {
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--earth-accent);
+}
+.zafra-popup-routes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.zafra-popup-route-tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--ui-surface-subtle);
+  border: 1px solid var(--ui-border-strong);
+  color: var(--brand-primary);
+}
+.zafra-popup-block {
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.zafra-popup-block p {
+  margin: 2px 0 0;
+}
+.zafra-popup-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-main);
+}
+
+.map-routes-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.route-overview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border-strong);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  cursor: pointer;
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+}
+.route-overview-card:hover {
+  border-color: var(--brand-primary);
+  box-shadow: 0 4px 12px rgba(42, 34, 24, 0.08);
+  transform: translateY(-1px);
+}
+.route-overview-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+.route-overview-line {
+  font-size: 0.78rem;
+  line-height: 1.38;
+  color: var(--text-secondary);
+}
+.route-overview-line span {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+@media (max-width: 768px) {
+  .map-routes-overview-grid { grid-template-columns: 1fr; }
+  .zafra-map-marker { max-width: 135px; padding: 3px 6px; }
+  .zafra-map-marker .marker-top { font-size: 0.68rem; }
+  .zafra-map-marker .marker-sub { font-size: 0.6rem; }
+}
