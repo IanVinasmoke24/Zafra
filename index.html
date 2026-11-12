@@ -1732,6 +1732,8 @@ window.store = store;
 
 // Helper de Iconografía Vectorial Limpia (SVG)
 const Icons = {
+  home: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+  grid: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`,
   cart: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`,
   search: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
   mapPin: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
@@ -2225,23 +2227,29 @@ class App {
     return `
       <div class="subnav-bar">
         <div class="subnav-tabs">
-          <button class="subnav-item ${this.consumerTab === 'inicio' ? 'active' : ''}" data-tab="inicio">
-            Inicio
+          <button type="button" class="subnav-item ${this.consumerTab === 'inicio' ? 'active' : ''}" data-tab="inicio">
+            <span class="subnav-icon" aria-hidden="true">${Icons.home}</span>
+            <span class="subnav-label">Inicio</span>
           </button>
-          <button class="subnav-item ${this.consumerTab === 'catalogo' ? 'active' : ''}" data-tab="catalogo">
-            Catálogo
+          <button type="button" class="subnav-item ${this.consumerTab === 'catalogo' ? 'active' : ''}" data-tab="catalogo">
+            <span class="subnav-icon" aria-hidden="true">${Icons.grid}</span>
+            <span class="subnav-label">Catálogo</span>
           </button>
-          <button class="subnav-item ${this.consumerTab === 'mapa' ? 'active' : ''}" data-tab="mapa">
-            Mapa
+          <button type="button" class="subnav-item ${this.consumerTab === 'mapa' ? 'active' : ''}" data-tab="mapa">
+            <span class="subnav-icon" aria-hidden="true">${Icons.mapPin}</span>
+            <span class="subnav-label">Mapa</span>
           </button>
-          <button class="subnav-item ${this.consumerTab === 'ferias' ? 'active' : ''}" data-tab="ferias">
-            Ferias
+          <button type="button" class="subnav-item ${this.consumerTab === 'ferias' ? 'active' : ''}" data-tab="ferias">
+            <span class="subnav-icon" aria-hidden="true">${Icons.calendar}</span>
+            <span class="subnav-label">Ferias</span>
           </button>
-          <button class="subnav-item ${this.consumerTab === 'pedidos' ? 'active' : ''}" data-tab="pedidos">
-            Mis pedidos
+          <button type="button" class="subnav-item ${this.consumerTab === 'pedidos' ? 'active' : ''}" data-tab="pedidos">
+            <span class="subnav-icon" aria-hidden="true">${Icons.packageIcon}</span>
+            <span class="subnav-label">Mis pedidos</span>
           </button>
-          <button class="subnav-item ${this.consumerTab === 'perfil' ? 'active' : ''}" data-tab="perfil">
-            Mi entrega
+          <button type="button" class="subnav-item ${this.consumerTab === 'perfil' ? 'active' : ''}" data-tab="perfil">
+            <span class="subnav-icon" aria-hidden="true">${Icons.user}</span>
+            <span class="subnav-label">Mi entrega</span>
           </button>
         </div>
       </div>
