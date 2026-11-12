@@ -3033,7 +3033,7 @@ class App {
           <div class="page-subtitle">${youth.university} · Matrícula: ${youth.matricula}</div>
         </div>
         <button class="btn btn-secondary btn-sm" id="btn-download-certificate">
-          ${Icons.download} Generar Constancia Oficial (PDF)
+          ${Icons.download} Constancia y Firma (PDF)
         </button>
       </div>
 
@@ -3047,7 +3047,7 @@ class App {
 
         <div class="kpi-box">
           <span class="kpi-caption">Entregas Realizadas</span>
-          <div class="kpi-number">48</div>
+          <div class="kpi-number">${47 + youth.stops.filter(s => s.status === 'completed').length}</div>
           <span style="font-size: 0.76rem; color: var(--text-muted);">Calificación de servicio: 4.95 ⭐</span>
         </div>
 
@@ -3074,7 +3074,7 @@ class App {
         </div>
 
         <div class="data-table-wrapper">
-          <table class="data-table">
+          <table class="data-table youth-stops-table">
             <thead>
               <tr>
                 <th>Parada</th>
@@ -3089,19 +3089,31 @@ class App {
             <tbody>
               ${youth.stops.map((stop, index) => `
                 <tr>
-                  <td style="font-weight: 700; color: var(--text-main);">${index + 1}</td>
-                  <td style="font-weight: 600;">${stop.clientName}</td>
-                  <td style="font-size: 0.8rem; color: var(--text-secondary);">${stop.address}</td>
-                  <td>${stop.window}</td>
-                  <td style="font-size: 0.8rem;">${stop.itemsSummary}</td>
-                  <td style="font-weight: 600;">${stop.paymentMethod} ($${stop.total})</td>
-                  <td>
+                  <td data-label="Parada" style="font-weight: 700; color: var(--text-main);">${index + 1}</td>
+                  <td data-label="Cliente" style="font-weight: 600;">${this.escapeHtml(stop.clientName)}</td>
+                  <td data-label="Dirección" style="font-size: 0.8rem; color: var(--text-secondary);">${this.escapeHtml(stop.address)}</td>
+                  <td data-label="Ventana">${this.escapeHtml(stop.window)}</td>
+                  <td data-label="Pedido" style="font-size: 0.8rem;">${this.escapeHtml(stop.itemsSummary)}</td>
+                  <td data-label="Cobro" style="font-weight: 600;">${this.escapeHtml(stop.paymentMethod)} (${stop.total})</td>
+                  <td data-label="Firma">
                     ${stop.status === 'completed' ? `
-                      <span style="color: var(--status-success); font-weight: 600; font-size: 0.78rem;">
-                        ${Icons.check} Validado (+2 hrs)
-                      </span>
+                      <div class="youth-signed-cell">
+                        <span style="color: var(--status-success); font-weight: 600; font-size: 0.78rem;">
+                          ${Icons.check} Validado (+2 hrs)
+                        </span>
+                        ${stop.signatureDataUrl ? `
+                          <button type="button" class="btn btn-secondary btn-sm view-signature-btn" data-stop-id="${this.escapeHtml(stop.id)}" title="Ver o cambiar firma">
+                            <img src="${stop.signatureDataUrl}" alt="Firma de ${this.escapeHtml(stop.signerName || stop.clientName)}" class="signature-thumb-img" />
+                            <span>Ver firma</span>
+                          </button>
+                        ` : `
+                          <button type="button" class="btn btn-ghost btn-sm mark-delivered-btn" data-stop-id="${this.escapeHtml(stop.id)}" style="padding: 2px 8px; font-size: 0.75rem;">
+                            Dibujar firma
+                          </button>
+                        `}
+                      </div>
                     ` : `
-                      <button class="btn btn-primary btn-sm mark-delivered-btn" data-stop-id="${stop.id}">
+                      <button type="button" class="btn btn-primary btn-sm mark-delivered-btn" data-stop-id="${this.escapeHtml(stop.id)}">
                         Registrar Firma
                       </button>
                     `}
@@ -3449,8 +3461,13 @@ class App {
     // Youth triggers
     this.appEl.querySelectorAll(".mark-delivered-btn").forEach(btn => {
       btn.addEventListener("click", () => {
-        const stopId = btn.dataset.stopId;
-        this.openSignatureModal(stopId);
+        this.openSignatureModal(btn.dataset.stopId);
+      });
+    });
+
+    this.appEl.querySelectorAll(".view-signature-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        this.openSignaturePreviewModal(btn.dataset.stopId);
       });
     });
 
@@ -3717,86 +3734,309 @@ class App {
   // ==========================================================================
   // MODAL OFICIAL DE HORAS DE SERVICIO SOCIAL (JOVEN)
   // ==========================================================================
+  setupSignaturePad(canvas, { onChange = null, inkColor = "#1d3a25" } = {}) {
+    if (!canvas || typeof canvas.getContext !== "function") return null;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+
+    const rectInit = canvas.getBoundingClientRect ? canvas.getBoundingClientRect() : { width: 0, height: 0 };
+    const logicalWidth = rectInit.width > 0 ? rectInit.width : (Number(canvas.width) || 440);
+    const logicalHeight = rectInit.height > 0 ? rectInit.height : (Number(canvas.height) || 170);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    canvas.width = Math.round(logicalWidth * dpr);
+    canvas.height = Math.round(logicalHeight * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    let currentInk = inkColor;
+    let isDrawing = false;
+    let hasDrawn = false;
+    let lastPt = null;
+    let lastMid = null;
+
+    const getPoint = (e) => {
+      const rect = canvas.getBoundingClientRect ? canvas.getBoundingClientRect() : { left: 0, top: 0, width: logicalWidth, height: logicalHeight };
+      const w = rect.width || logicalWidth;
+      const h = rect.height || logicalHeight;
+      const src = e.touches && e.touches[0] ? e.touches[0] : (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0] : e);
+      return {
+        x: ((src.clientX - rect.left) / w) * logicalWidth,
+        y: ((src.clientY - rect.top) / h) * logicalHeight
+      };
+    };
+
+    const startStroke = (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      if (e.cancelable) e.preventDefault();
+      if (e.pointerId !== undefined && typeof canvas.setPointerCapture === "function") {
+        try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+      }
+      const pt = getPoint(e);
+      isDrawing = true;
+      lastPt = pt;
+      lastMid = pt;
+
+      ctx.strokeStyle = currentInk;
+      ctx.fillStyle = currentInk;
+      ctx.lineWidth = 2.4;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (!hasDrawn) {
+        hasDrawn = true;
+        if (onChange) onChange(true);
+      }
+    };
+
+    const moveStroke = (e) => {
+      if (!isDrawing) return;
+      if (e.cancelable) e.preventDefault();
+      const pt = getPoint(e);
+      const mid = { x: (lastPt.x + pt.x) / 2, y: (lastPt.y + pt.y) / 2 };
+
+      ctx.strokeStyle = currentInk;
+      ctx.lineWidth = 2.4;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.moveTo(lastMid.x, lastMid.y);
+      ctx.quadraticCurveTo(lastPt.x, lastPt.y, mid.x, mid.y);
+      ctx.stroke();
+
+      lastPt = pt;
+      lastMid = mid;
+    };
+
+    const endStroke = () => {
+      if (!isDrawing) return;
+      isDrawing = false;
+      lastPt = null;
+      lastMid = null;
+    };
+
+    if (typeof window.PointerEvent !== "undefined") {
+      canvas.addEventListener("pointerdown", startStroke);
+      canvas.addEventListener("pointermove", moveStroke);
+      canvas.addEventListener("pointerup", endStroke);
+      canvas.addEventListener("pointercancel", endStroke);
+    } else {
+      canvas.addEventListener("mousedown", startStroke);
+      canvas.addEventListener("mousemove", moveStroke);
+      canvas.addEventListener("mouseup", endStroke);
+      canvas.addEventListener("mouseleave", endStroke);
+      canvas.addEventListener("touchstart", startStroke, { passive: false });
+      canvas.addEventListener("touchmove", moveStroke, { passive: false });
+      canvas.addEventListener("touchend", endStroke);
+      canvas.addEventListener("touchcancel", endStroke);
+    }
+
+    return {
+      hasSignature: () => hasDrawn,
+      clear: () => {
+        ctx.clearRect(0, 0, logicalWidth, logicalHeight);
+        hasDrawn = false;
+        isDrawing = false;
+        lastPt = null;
+        lastMid = null;
+        if (onChange) onChange(false);
+      },
+      setInkColor: (color) => {
+        currentInk = color;
+      },
+      toDataURL: () => (typeof canvas.toDataURL === "function" ? canvas.toDataURL("image/png") : "")
+    };
+  }
+
   openCertificateModal() {
     const youth = store.getYouth()[0];
-    this.modalRoot.innerHTML = `
-      <div class="modal-overlay" id="modal-bg">
-        <div class="modal-dialog" style="max-width: 580px;">
-          <div class="modal-dialog-header">
-            <h3 class="modal-dialog-title">Constancia de Horas de Servicio Social</h3>
-            <button class="modal-dismiss-btn" id="close-modal-x">&times;</button>
-          </div>
-          <div class="modal-dialog-body">
-            <div style="border: 1px solid var(--ui-border); border-radius: var(--radius-sm); padding: 24px; background: #fff; text-align: center;">
-              <div style="font-size: 0.72rem; font-weight: 700; color: var(--brand-primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
-                Universidad Autónoma del Estado de Morelos · Dirección de Servicio Social
-              </div>
-              <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; margin-bottom: 12px;">
-                CONSTANCIA DE ACREDITACIÓN DE HORAS
-              </h3>
-              <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px; text-align: justify;">
-                Se certifica que el/la alumno(a) <strong>${youth.youthName}</strong>, con matrícula <strong>${youth.matricula}</strong> de la <strong>${youth.university}</strong>, ha acreditado actividades de logística agropecuaria sustentable y asistencia en parcelas campesinas en la plataforma <strong>Zafra</strong> acumulando:
-              </p>
-              
-              <div style="background: var(--brand-surface-tint); border: 1px solid var(--brand-subtle); padding: 12px; border-radius: var(--radius-xs); display: inline-block; margin-bottom: 16px;">
-                <div style="font-size: 0.72rem; font-weight: 600; color: var(--brand-primary); text-transform: uppercase;">Total de Horas Validadas:</div>
-                <div style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: var(--brand-primary);">
-                  ${youth.hoursCompleted} / ${youth.totalHoursNeeded} HORAS
-                </div>
-              </div>
+    let signingCert = !youth.studentSignatureDataUrl;
 
-              <div style="display: flex; justify-content: space-around; margin-top: 18px; font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid var(--ui-divider); padding-top: 14px;">
-                <div>
-                  <div style="font-weight: 600; color: var(--text-main);">Coordinación de Servicio Social</div>
-                  <div>Fac. de Ciencias Agropecuarias UAEM</div>
-                </div>
-                <div>
-                  <div style="font-weight: 600; color: var(--text-main);">Comité Técnico Operativo</div>
-                  <div>Plataforma Zafra</div>
-                </div>
-              </div>
+    const renderCert = () => {
+      const currentYouth = store.getYouth()[0];
+      this.modalRoot.innerHTML = `
+        <div class="modal-overlay" id="modal-bg">
+          <div class="modal-dialog" style="max-width: 600px;">
+            <div class="modal-dialog-header">
+              <h3 class="modal-dialog-title">Constancia de Horas de Servicio Social</h3>
+              <button type="button" class="modal-dismiss-btn" id="close-modal-x">&times;</button>
             </div>
+            <div class="modal-dialog-body">
+              <div style="border: 1px solid var(--ui-border); border-radius: var(--radius-sm); padding: 22px; background: #fff; text-align: center;">
+                <div style="font-size: 0.72rem; font-weight: 700; color: var(--brand-primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
+                  Universidad Autónoma del Estado de Morelos · Dirección de Servicio Social
+                </div>
+                <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; margin-bottom: 12px;">
+                  CONSTANCIA DE ACREDITACIÓN DE HORAS
+                </h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px; text-align: justify;">
+                  Se certifica que el/la alumno(a) <strong>${this.escapeHtml(currentYouth.youthName)}</strong>, con matrícula <strong>${this.escapeHtml(currentYouth.matricula)}</strong> de la <strong>${this.escapeHtml(currentYouth.university)}</strong>, ha acreditado actividades de logística agropecuaria sustentable y asistencia en parcelas campesinas en la plataforma <strong>Zafra</strong> acumulando:
+                </p>
 
-            <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: flex-end;">
-              <button class="btn btn-secondary btn-sm" id="close-cert-btn">Cerrar</button>
-              <button class="btn btn-primary btn-sm" onclick="window.print()">
-                ${Icons.download} Imprimir / Exportar PDF
-              </button>
+                <div style="background: var(--brand-surface-tint); border: 1px solid var(--brand-subtle); padding: 12px; border-radius: var(--radius-xs); display: inline-block; margin-bottom: 16px;">
+                  <div style="font-size: 0.72rem; font-weight: 600; color: var(--brand-primary); text-transform: uppercase;">Total de Horas Validadas:</div>
+                  <div style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: var(--brand-primary);">
+                    ${currentYouth.hoursCompleted} / ${currentYouth.totalHoursNeeded} HORAS
+                  </div>
+                </div>
+
+                <div class="cert-signatures-grid">
+                  <div>
+                    <div style="font-weight: 600; color: var(--text-main);">Coordinación de Servicio Social</div>
+                    <div>Fac. de Ciencias Agropecuarias UAEM</div>
+                  </div>
+                  <div>
+                    ${currentYouth.studentSignatureDataUrl && !signingCert ? `
+                      <img src="${currentYouth.studentSignatureDataUrl}" alt="Firma de ${this.escapeHtml(currentYouth.youthName)}" class="cert-signature-img" />
+                    ` : ""}
+                    <div style="font-weight: 600; color: var(--text-main);">${this.escapeHtml(currentYouth.youthName)}</div>
+                    <div>Firma del Prestador de Servicio Social</div>
+                  </div>
+                </div>
+              </div>
+
+              ${signingCert ? `
+                <div class="cert-sign-box">
+                  <div class="signature-pad-header">
+                    <span class="form-label-title" style="margin: 0;">Dibuja tu firma para la constancia</span>
+                    <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-cert-sign">Limpiar</button>
+                  </div>
+                  <div class="signature-pad-wrap" style="height: 130px;">
+                    <canvas id="cert-signature-canvas" class="signature-canvas" width="460" height="130"></canvas>
+                    <span class="signature-pad-hint" id="cert-sign-hint">Dibuja tu firma aquí con el dedo o cursor</span>
+                    <div class="signature-baseline"></div>
+                  </div>
+                  <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button type="button" class="btn btn-primary btn-sm" id="btn-save-cert-sign" style="flex: 1;">Guardar firma en constancia</button>
+                    ${currentYouth.studentSignatureDataUrl ? `<button type="button" class="btn btn-secondary btn-sm" id="btn-cancel-cert-sign">Cancelar</button>` : ""}
+                  </div>
+                </div>
+              ` : `
+                <div style="margin-top: 10px; text-align: right;">
+                  <button type="button" class="btn btn-ghost btn-sm" id="btn-edit-cert-sign">Volver a dibujar mi firma</button>
+                </div>
+              `}
+
+              <div style="margin-top: 14px; display: flex; gap: 8px; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary btn-sm" id="close-cert-btn">Cerrar</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+                  ${Icons.download} Imprimir / Exportar PDF
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
 
-    this.bindModalClose();
-    const closeBtn = document.getElementById("close-cert-btn");
-    if (closeBtn) closeBtn.addEventListener("click", () => this.closeModal());
+      this.bindModalClose();
+      const closeBtn = document.getElementById("close-cert-btn");
+      if (closeBtn) closeBtn.addEventListener("click", () => this.closeModal());
+
+      const editSignBtn = document.getElementById("btn-edit-cert-sign");
+      if (editSignBtn) {
+        editSignBtn.addEventListener("click", () => {
+          signingCert = true;
+          renderCert();
+        });
+      }
+
+      const cancelSignBtn = document.getElementById("btn-cancel-cert-sign");
+      if (cancelSignBtn) {
+        cancelSignBtn.addEventListener("click", () => {
+          signingCert = false;
+          renderCert();
+        });
+      }
+
+      if (signingCert) {
+        const certCanvas = document.getElementById("cert-signature-canvas");
+        const certHint = document.getElementById("cert-sign-hint");
+        const certPad = this.setupSignaturePad(certCanvas, {
+          onChange: (drawn) => {
+            if (certHint) certHint.style.display = drawn ? "none" : "block";
+          }
+        });
+        const clearCertBtn = document.getElementById("btn-clear-cert-sign");
+        if (clearCertBtn && certPad) {
+          clearCertBtn.addEventListener("click", () => certPad.clear());
+        }
+        const saveCertBtn = document.getElementById("btn-save-cert-sign");
+        if (saveCertBtn && certPad) {
+          saveCertBtn.addEventListener("click", () => {
+            if (!certPad.hasSignature()) {
+              this.showToast("Dibuja tu firma antes de guardarla en la constancia", "info");
+              return;
+            }
+            const youthRoutes = store.getYouth();
+            youthRoutes[0].studentSignatureDataUrl = certPad.toDataURL();
+            store.saveYouth(youthRoutes);
+            signingCert = false;
+            this.showToast("Firma guardada en la constancia.", "success");
+            renderCert();
+          });
+        }
+      }
+    };
+
+    renderCert();
   }
 
   // ==========================================================================
-  // MODAL REGISTRO DE ENTREGA / FIRMA DIGITAL
+  // MODAL REGISTRO DE ENTREGA / FIRMA DIGITAL DIBUJABLE
   // ==========================================================================
   openSignatureModal(stopId) {
+    const youth = store.getYouth()[0];
+    const stop = youth.stops.find(s => s.id === stopId);
+    const defaultSigner = stop ? (stop.signerName || stop.clientName) : "";
+
     this.modalRoot.innerHTML = `
       <div class="modal-overlay" id="modal-bg">
-        <div class="modal-dialog" style="max-width: 480px;">
+        <div class="modal-dialog" style="max-width: 500px;">
           <div class="modal-dialog-header">
-            <h3 class="modal-dialog-title">Validación de Entrega</h3>
-            <button class="modal-dismiss-btn" id="close-modal-x">&times;</button>
+            <h3 class="modal-dialog-title">Validación de Entrega · Firma</h3>
+            <button type="button" class="modal-dismiss-btn" id="close-modal-x">&times;</button>
           </div>
           <div class="modal-dialog-body">
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 14px;">
-              Capture la firma de conformidad del cliente en pantalla para concluir la entrega y sumar horas de servicio social.
-            </p>
+            ${stop ? `
+              <div class="signature-stop-summary">
+                <strong>${this.escapeHtml(stop.clientName)}</strong> · ${this.escapeHtml(stop.orderId)}
+                <div>${this.escapeHtml(stop.address)}</div>
+                <div>${this.escapeHtml(stop.itemsSummary)} · <b>${this.escapeHtml(stop.paymentMethod)} (${stop.total})</b></div>
+              </div>
+            ` : ""}
 
-            <div style="background: #f8fafc; border: 1px dashed var(--ui-border-strong); border-radius: var(--radius-sm); height: 140px; display: flex; align-items: center; justify-content: center; cursor: crosshair; margin-bottom: 16px;">
-              <span style="font-size: 0.8rem; color: var(--text-muted);">
-                Trazar firma digital de recepción aquí
-              </span>
+            <div class="form-group-item" style="margin-bottom: 12px;">
+              <label class="form-label-title">Nombre de quien recibe</label>
+              <input type="text" class="form-input-control" id="signature-signer-name" value="${this.escapeHtml(defaultSigner)}" placeholder="Nombre completo del receptor" />
             </div>
 
-            <button class="btn btn-primary btn-block" id="btn-submit-delivery-proof">
-              ${Icons.check} Validar Entrega & Acreditar +2 Horas
+            <div class="signature-pad-header">
+              <span class="form-label-title" style="margin: 0;">Dibuja la firma de recepción</span>
+              <div class="signature-tools-row">
+                <div class="signature-colors" aria-label="Color de tinta">
+                  <button type="button" class="ink-dot active" data-ink="#1d3a25" style="background: #1d3a25;" title="Tinta verde Zafra"></button>
+                  <button type="button" class="ink-dot" data-ink="#2a2218" style="background: #2a2218;" title="Tinta negra"></button>
+                  <button type="button" class="ink-dot" data-ink="#1e3a8a" style="background: #1e3a8a;" title="Tinta azul"></button>
+                </div>
+                <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-signature">Limpiar firma</button>
+              </div>
+            </div>
+
+            <div class="signature-pad-wrap" id="signature-pad-box">
+              <canvas id="signature-canvas" class="signature-canvas" width="460" height="175"></canvas>
+              <span class="signature-pad-hint" id="signature-pad-hint">Traza la firma aquí con tu dedo o cursor</span>
+              <div class="signature-baseline"></div>
+            </div>
+
+            <div class="signature-status-row">
+              <span id="signature-pad-status" class="signature-status-pending">Falta dibujar la firma</span>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">+2 hrs al acreditar</span>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-block" id="btn-submit-delivery-proof">
+              ${Icons.check} ${stop && stop.status === 'completed' ? 'Guardar Nueva Firma' : 'Validar Entrega & Acreditar +2 Horas'}
             </button>
           </div>
         </div>
@@ -3805,21 +4045,113 @@ class App {
 
     this.bindModalClose();
 
+    const canvas = document.getElementById("signature-canvas");
+    const hint = document.getElementById("signature-pad-hint");
+    const statusEl = document.getElementById("signature-pad-status");
+    const padBox = document.getElementById("signature-pad-box");
+
+    const pad = this.setupSignaturePad(canvas, {
+      onChange: (drawn) => {
+        if (hint) hint.style.display = drawn ? "none" : "block";
+        if (statusEl) {
+          statusEl.textContent = drawn ? "Firma capturada" : "Falta dibujar la firma";
+          statusEl.className = drawn ? "signature-status-ready" : "signature-status-pending";
+        }
+        if (padBox && drawn) padBox.classList.remove("needs-signature");
+      }
+    });
+
+    const clearBtn = document.getElementById("btn-clear-signature");
+    if (clearBtn && pad) {
+      clearBtn.addEventListener("click", () => pad.clear());
+    }
+
+    this.modalRoot.querySelectorAll(".ink-dot").forEach(dot => {
+      dot.addEventListener("click", () => {
+        this.modalRoot.querySelectorAll(".ink-dot").forEach(d => d.classList.remove("active"));
+        dot.classList.add("active");
+        if (pad) pad.setInkColor(dot.dataset.ink);
+      });
+    });
+
     const submitBtn = document.getElementById("btn-submit-delivery-proof");
     if (submitBtn) {
       submitBtn.addEventListener("click", () => {
+        if (!pad || !pad.hasSignature()) {
+          if (padBox) padBox.classList.add("needs-signature");
+          this.showToast("Dibuja la firma en el recuadro antes de validar la entrega", "info");
+          return;
+        }
+        const signerInput = document.getElementById("signature-signer-name");
+        const signerName = signerInput && signerInput.value.trim()
+          ? signerInput.value.trim()
+          : (stop ? stop.clientName : "Receptor");
+
         const youthRoutes = store.getYouth();
         const route = youthRoutes[0];
-        const stop = route.stops.find(s => s.id === stopId);
-        if (stop) {
-          stop.status = "completed";
-          route.hoursCompleted += 2;
+        const targetStop = route.stops.find(s => s.id === stopId);
+        if (targetStop) {
+          const wasCompleted = targetStop.status === "completed";
+          targetStop.status = "completed";
+          targetStop.signatureDataUrl = pad.toDataURL();
+          targetStop.signerName = signerName;
+          targetStop.signedAt = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
+          if (!wasCompleted) {
+            route.hoursCompleted += 2;
+          }
           store.saveYouth(youthRoutes);
         }
         this.closeModal();
-        this.showToast("Entrega validada y horas sumadas al expediente.", "success");
+        this.showToast("Firma guardada y entrega acreditada.", "success");
         this.render();
       });
+    }
+  }
+
+  openSignaturePreviewModal(stopId) {
+    const youth = store.getYouth()[0];
+    const stop = youth.stops.find(s => s.id === stopId);
+    if (!stop) return;
+
+    this.modalRoot.innerHTML = `
+      <div class="modal-overlay" id="modal-bg">
+        <div class="modal-dialog" style="max-width: 460px;">
+          <div class="modal-dialog-header">
+            <h3 class="modal-dialog-title">Comprobante de Firma</h3>
+            <button type="button" class="modal-dismiss-btn" id="close-modal-x">&times;</button>
+          </div>
+          <div class="modal-dialog-body">
+            <div class="signature-stop-summary">
+              <strong>Receptor:</strong> ${this.escapeHtml(stop.signerName || stop.clientName)}<br/>
+              <strong>Pedido:</strong> ${this.escapeHtml(stop.orderId)} · ${this.escapeHtml(stop.signedAt || "Validado")}<br/>
+              <strong>Dirección:</strong> ${this.escapeHtml(stop.address)}
+            </div>
+
+            <div class="signature-preview-frame">
+              ${stop.signatureDataUrl
+                ? `<img src="${stop.signatureDataUrl}" alt="Firma de ${this.escapeHtml(stop.signerName || stop.clientName)}" />`
+                : `<span style="color: var(--text-muted); font-size: 0.85rem;">Sin trazo guardado</span>`}
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 14px;">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-resign-stop" style="flex: 1;">
+                Volver a firmar
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" id="btn-close-sig-preview" style="flex: 1;">
+                Listo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    this.bindModalClose();
+    const closePreview = document.getElementById("btn-close-sig-preview");
+    if (closePreview) closePreview.addEventListener("click", () => this.closeModal());
+    const resignBtn = document.getElementById("btn-resign-stop");
+    if (resignBtn) {
+      resignBtn.addEventListener("click", () => this.openSignatureModal(stopId));
     }
   }
 
