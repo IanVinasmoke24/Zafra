@@ -8,10 +8,15 @@
   "description": "Zafra: conectando al campo de Morelos con tu mesa sin intermediarios.",
   "icons": [
     {
+      "src": "assets/img/zafra_icon.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "assets/icon.svg",
       "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/svg+xml"
     }
   ]
 }

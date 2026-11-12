@@ -58,6 +58,13 @@ h1, h2, h3, .page-title, .hero-pro-title, .brand-name, .product-heading,
   flex-wrap: wrap;
 }
 .brand-logo-link, .brand-name { color: var(--brand-primary-dark); }
+.brand-logo-lockup {
+  display: block;
+  height: 46px;
+  width: auto;
+  max-width: 190px;
+  object-fit: contain;
+}
 .brand-name { font-weight: 700; font-size: 1.35rem; letter-spacing: 0.04em; }
 .brand-tag { color: var(--text-muted); }
 .network-badge { background: var(--brand-surface-tint); border-color: var(--brand-subtle); color: var(--brand-primary); }
@@ -128,6 +135,7 @@ img { max-width: 100%; }
   body { font-size: 15px; }
 
   .top-header { padding: 8px 12px; justify-content: space-between; }
+  .brand-logo-lockup { height: 38px; max-width: 155px; }
   .brand-tag, .network-badge { display: none; }
   .role-segmented-control { order: 3; width: 100%; overflow-x: auto; scrollbar-width: none; }
   .role-segmented-control::-webkit-scrollbar { display: none; }
