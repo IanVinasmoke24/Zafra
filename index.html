@@ -1328,7 +1328,7 @@ class DataStore {
   addToCart(productId, qty = 1) {
     const products = this.getProducts();
     const product = products.find(p => p.id === productId);
-    if (!product) return;
+    if (!product || product.paused) return false;
 
     let cart = this.getCart();
     const existing = cart.find(item => item.id === productId);
@@ -1350,6 +1350,7 @@ class DataStore {
       });
     }
     this.saveCart(cart);
+    return true;
   }
 
   updateCartQty(productId, qty) {
@@ -1467,6 +1468,8 @@ class App {
     this.markersLayer = null;
     this.routeLineLayer = null;
     this.navHistory = [];
+    this.activeProducerId = "prod-1";
+    this.producerLotFilter = "todos";
 
     try {
       const initialHash = window.location.hash.replace("#", "");
@@ -2003,7 +2006,7 @@ class App {
 
   renderConsumerHome() {
     const profile = store.getUserProfile();
-    const products = store.getProducts();
+    const products = store.getProducts().filter(p => !p.paused);
     const inSeason = products.filter(p => p.tags.includes("De temporada") || p.isPreventa);
 
     return `
@@ -2103,7 +2106,7 @@ class App {
   }
 
   renderConsumerCatalog() {
-    const products = store.getProducts();
+    const products = store.getProducts().filter(p => !p.paused);
     const municipalities = ["todos"].concat([...new Set(products.map(p => p.municipality))].sort());
     const categories = ["todos"].concat(ZAFRA_CATEGORIES);
 
@@ -2784,22 +2787,49 @@ class App {
   // ==========================================================================
   // 2. VISTA DEL PRODUCTOR (PANEL OPERATIVO AGRÍCOLA)
   // ==========================================================================
+  escapeHtml(str) {
+    return String(str ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  getActiveProducer() {
+    const producers = store.getProducers();
+    return producers.find(p => p.id === this.activeProducerId) || producers[0];
+  }
+
   renderProducerView() {
-    const producer = store.getProducers()[0]; // Don Chente
-    const products = store.getProducts().filter(p => p.producerId === producer.id);
+    const producers = store.getProducers();
+    const producer = this.getActiveProducer();
+    const allProducerProducts = store.getProducts().filter(p => p.producerId === producer.id);
+    const activeLots = allProducerProducts.filter(p => !p.paused);
+    const pausedLots = allProducerProducts.filter(p => p.paused);
+    const visibleLots = this.producerLotFilter === "activos"
+      ? activeLots
+      : this.producerLotFilter === "pausados"
+        ? pausedLots
+        : allProducerProducts;
 
     return `
       <div class="page-header">
         <div>
           <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700;">
-            Padrón de Productores · Folio MOR-TLY-004
+            Padrón de Productores · ${this.escapeHtml(producer.municipality)}
           </div>
-          <h2 class="page-title">${producer.ranchName} · ${producer.name}</h2>
-          <div class="page-subtitle">${producer.municipality}, Morelos · ${producer.yearsFarming} años de experiencia agrícola</div>
+          <h2 class="page-title">${this.escapeHtml(producer.ranchName)} · ${this.escapeHtml(producer.name)}</h2>
+          <div class="page-subtitle">${this.escapeHtml(producer.municipality)}, Morelos · ${producer.yearsFarming} años de experiencia agrícola</div>
         </div>
-        <div style="display: flex; gap: 8px;">
-          <button class="btn btn-primary btn-sm" id="prod-open-add-crop">
-            + Registrar Nuevo Lote de Cosecha
+        <div class="producer-header-actions">
+          <select class="form-input-control producer-account-select" id="producer-account-select" aria-label="Cambiar productor">
+            ${producers.map(pr => `
+              <option value="${this.escapeHtml(pr.id)}" ${pr.id === producer.id ? 'selected' : ''}>${this.escapeHtml(pr.name)} · ${this.escapeHtml(pr.municipality)}</option>
+            `).join("")}
+          </select>
+          <button type="button" class="btn btn-primary btn-sm" id="prod-open-add-crop">
+            + Agregar Lote
           </button>
         </div>
       </div>
@@ -2929,37 +2959,60 @@ class App {
       </div>
 
       <!-- Catálogo de Lotes del Productor -->
-      <div class="page-header" style="margin-top: 28px;">
+      <div class="page-header" style="margin-top: 28px; margin-bottom: 14px;">
         <div>
-          <h3 class="page-title" style="font-size: 1.15rem;">Lotes Publicados en Catálogo</h3>
-          <p class="page-subtitle">Control de precios por unidad y activación o pausa temporal de disponibilidad</p>
+          <h3 class="page-title" style="font-size: 1.15rem;">Lotes en Catálogo (${activeLots.length} activos · ${pausedLots.length} pausados)</h3>
+          <p class="page-subtitle">Agrega nuevos lotes, ajusta precios o stock y pausa o reactiva tu disponibilidad al instante</p>
+        </div>
+        <div class="producer-lot-filters">
+          <button type="button" class="filter-chip producer-lot-filter-btn ${this.producerLotFilter === 'todos' ? 'active' : ''}" data-lot-filter="todos">
+            Todos (${allProducerProducts.length})
+          </button>
+          <button type="button" class="filter-chip producer-lot-filter-btn ${this.producerLotFilter === 'activos' ? 'active' : ''}" data-lot-filter="activos">
+            Activos (${activeLots.length})
+          </button>
+          <button type="button" class="filter-chip producer-lot-filter-btn ${this.producerLotFilter === 'pausados' ? 'active' : ''}" data-lot-filter="pausados">
+            Pausados (${pausedLots.length})
+          </button>
         </div>
       </div>
 
-      <div class="catalog-grid">
-        ${products.map(p => `
-          <div class="product-item">
-            <div class="product-image-container">
-              <img src="${p.image}" alt="${p.name}" class="product-img" loading="lazy" data-fallback="${p.fallbackImage || ''}" onerror="if(this.dataset.fallback){this.onerror=null;this.src=this.dataset.fallback;}" />
-              <span class="tag-badge">${p.isPreventa ? 'Preventa' : 'Inmediato'}</span>
-            </div>
-            <div class="product-content">
-              <h4 class="product-heading">${p.name}</h4>
-              <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
-                Precio actual: <strong>$${p.price.toFixed(2)} / ${p.unit}</strong>
+      ${visibleLots.length === 0 ? `
+        <div class="producer-empty-lots">
+          <p>${this.producerLotFilter === 'pausados' ? 'No tienes lotes pausados actualmente.' : 'Aún no hay lotes registrados en esta vista.'}</p>
+          <button type="button" class="btn btn-primary btn-sm" id="prod-empty-add-crop">+ Agregar nuevo lote</button>
+        </div>
+      ` : `
+        <div class="catalog-grid">
+          ${visibleLots.map(p => `
+            <div class="product-item producer-lot-card ${p.paused ? 'is-paused' : ''}" data-lot-id="${this.escapeHtml(p.id)}">
+              <div class="product-image-container">
+                <img src="${this.escapeHtml(p.image)}" alt="${this.escapeHtml(p.name)}" class="product-img" loading="lazy" data-fallback="${this.escapeHtml(p.fallbackImage || '')}" onerror="if(this.dataset.fallback){this.onerror=null;this.src=this.dataset.fallback;}" />
+                <span class="tag-badge ${p.paused ? 'lot-paused-badge' : 'lot-active-badge'}">
+                  ${p.paused ? 'Pausado' : (p.isPreventa ? 'Activo · Preventa' : 'Activo · Inmediato')}
+                </span>
               </div>
-              <div style="display: flex; gap: 8px; margin-top: auto;">
-                <button class="btn btn-secondary btn-sm toggle-crop-pause" data-id="${p.id}" style="flex: 1;">
-                  Pausar Lote
-                </button>
-                <button class="btn btn-primary btn-sm edit-crop-btn" data-id="${p.id}" style="flex: 1;">
-                  Editar
-                </button>
+              <div class="product-content">
+                <div class="producer-lot-meta">${this.escapeHtml(p.category)}</div>
+                <h4 class="product-heading">${this.escapeHtml(p.name)}</h4>
+                <div class="producer-lot-info">
+                  <span>Precio: <strong>${Number(p.price).toFixed(2)} / ${this.escapeHtml(p.unit)}</strong></span>
+                  <span>Stock: <strong>${p.stock ?? 0} ${this.escapeHtml(p.unit)}</strong></span>
+                  <span>${this.escapeHtml(p.availability || p.harvestDate || 'Disponible esta semana')}</span>
+                </div>
+                <div class="producer-lot-actions">
+                  <button type="button" class="btn ${p.paused ? 'btn-primary' : 'btn-secondary'} btn-sm toggle-crop-pause" data-id="${this.escapeHtml(p.id)}">
+                    ${p.paused ? 'Activar Lote' : 'Pausar Lote'}
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm edit-crop-btn" data-id="${this.escapeHtml(p.id)}">
+                    Editar
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        `).join("")}
-      </div>
+          `).join("")}
+        </div>
+      `} 
     `;
   }
 
@@ -3199,8 +3252,11 @@ class App {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const id = btn.dataset.addId;
-        store.addToCart(id, 1);
-        this.showToast("Lote agregado a la canasta", "success");
+        if (store.addToCart(id, 1)) {
+          this.showToast("Lote agregado a la canasta", "success");
+        } else {
+          this.showToast("Este lote está pausado temporalmente", "info");
+        }
       });
     });
 
@@ -3346,10 +3402,42 @@ class App {
     }
 
     // Producer triggers
+    const producerSelect = document.getElementById("producer-account-select");
+    if (producerSelect) {
+      producerSelect.addEventListener("change", (e) => {
+        this.activeProducerId = e.target.value;
+        this.producerLotFilter = "todos";
+        this.render();
+      });
+    }
+
+    this.appEl.querySelectorAll(".producer-lot-filter-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        this.producerLotFilter = btn.dataset.lotFilter || "todos";
+        this.render();
+      });
+    });
+
     const openAddCrop = document.getElementById("prod-open-add-crop");
     if (openAddCrop) {
       openAddCrop.addEventListener("click", () => this.openAddCropModal());
     }
+    const emptyAddCrop = document.getElementById("prod-empty-add-crop");
+    if (emptyAddCrop) {
+      emptyAddCrop.addEventListener("click", () => this.openAddCropModal());
+    }
+
+    this.appEl.querySelectorAll(".toggle-crop-pause").forEach(btn => {
+      btn.addEventListener("click", () => {
+        this.toggleCropPause(btn.dataset.id);
+      });
+    });
+
+    this.appEl.querySelectorAll(".edit-crop-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        this.openEditCropModal(btn.dataset.id);
+      });
+    });
 
     const markHarvestReady = document.getElementById("btn-mark-harvest-ready");
     if (markHarvestReady) {
@@ -3390,7 +3478,7 @@ class App {
   openProducerModal(producerId) {
     const producer = store.getProducers().find(p => p.id === producerId);
     if (!producer) return;
-    const products = store.getProducts().filter(p => p.producerId === producer.id);
+    const products = store.getProducts().filter(p => p.producerId === producer.id && !p.paused);
 
     this.modalRoot.innerHTML = `
       <div class="modal-overlay" id="modal-bg">
@@ -3454,8 +3542,11 @@ class App {
 
     this.modalRoot.querySelectorAll("[data-add-id]").forEach(b => {
       b.addEventListener("click", () => {
-        store.addToCart(b.dataset.addId, 1);
-        this.showToast("Lote agregado a canasta", "success");
+        if (store.addToCart(b.dataset.addId, 1)) {
+          this.showToast("Lote agregado a canasta", "success");
+        } else {
+          this.showToast("Este lote está pausado temporalmente", "info");
+        }
       });
     });
   }
@@ -3733,59 +3824,156 @@ class App {
   }
 
   // ==========================================================================
-  // MODAL REGISTRAR CULTIVO (PRODUCTOR)
+  // GESTIÓN DE LOTES DEL PRODUCTOR (AGREGAR, EDITAR, PAUSAR/ACTIVAR)
   // ==========================================================================
+  toggleCropPause(productId) {
+    const products = store.getProducts();
+    const target = products.find(p => p.id === productId);
+    if (!target) return;
+    target.paused = !Boolean(target.paused);
+    store.saveProducts(products);
+    this.showToast(
+      target.paused
+        ? `Lote "${target.name}" pausado (oculto del catálogo)`
+        : `Lote "${target.name}" activado en catálogo`,
+      target.paused ? "info" : "success"
+    );
+    this.render();
+  }
+
   openAddCropModal() {
+    this.openCropModal(null);
+  }
+
+  openEditCropModal(productId) {
+    this.openCropModal(productId);
+  }
+
+  resolveCropImage(category, selectedImage, existingImage) {
+    if (selectedImage && selectedImage !== "auto") return selectedImage;
+    if (existingImage) return existingImage;
+    const match = store.getProducts().find(
+      p => p.category === category && p.image && !p.image.startsWith("data:")
+    );
+    return match ? match.image : "assets/img/prod_ejote.jpg";
+  }
+
+  openCropModal(productId = null) {
+    const allProducts = store.getProducts();
+    const existing = productId ? allProducts.find(p => p.id === productId) : null;
+    const isEdit = Boolean(existing);
+    const producer = this.getActiveProducer();
+
+    const baseUnits = ["kg", "docena", "pieza", "manojo", "bolsa", "frasco", "litro", "charola", "botella", "caja"];
+    const currentUnit = existing ? existing.unit : "kg";
+    const unitOptions = baseUnits.includes(currentUnit) ? baseUnits : [currentUnit, ...baseUnits];
+
+    const presetImages = [];
+    const seenImgs = new Set();
+    allProducts.forEach(item => {
+      if (item.image && !item.image.startsWith("data:") && !seenImgs.has(item.image) && presetImages.length < 36) {
+        seenImgs.add(item.image);
+        presetImages.push({ image: item.image, label: `${item.name} (${item.category})` });
+      }
+    });
+
+    const curCategory = existing ? existing.category : ZAFRA_CATEGORIES[0];
+    const curHarvest = existing ? (existing.harvestDate || existing.availability || "") : "";
+    const curDelivery = existing ? (existing.delivery || "Entrega en punto Zafra o domicilio local") : "Entrega en punto Zafra o domicilio local";
+    const curDesc = existing ? (existing.description || "") : "Lote de corte fresco bajo pedido.";
+    const curPreventa = existing ? Boolean(existing.isPreventa) : true;
+    const curPaused = existing ? Boolean(existing.paused) : false;
+
     this.modalRoot.innerHTML = `
       <div class="modal-overlay" id="modal-bg">
         <div class="modal-dialog">
           <div class="modal-dialog-header">
-            <h3 class="modal-dialog-title">Alta de Nuevo Lote de Cosecha</h3>
-            <button class="modal-dismiss-btn" id="close-modal-x">&times;</button>
+            <h3 class="modal-dialog-title">${isEdit ? "Editar Lote de Cosecha" : "Agregar Nuevo Lote"}</h3>
+            <button type="button" class="modal-dismiss-btn" id="close-modal-x">&times;</button>
           </div>
           <div class="modal-dialog-body">
             <form id="new-crop-form">
               <div class="form-group-item">
-                <label class="form-label-title">Nombre del Cultivo</label>
-                <input type="text" class="form-input-control" name="name" placeholder="Ej. Calabacita criolla, Ciruela..." required />
+                <label class="form-label-title">Nombre del Producto / Cultivo</label>
+                <input type="text" class="form-input-control" name="name" value="${this.escapeHtml(existing ? existing.name : "")}" placeholder="Ej. Calabacita criolla, Ciruela, Miel..." required />
               </div>
 
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <div class="crop-modal-row">
                 <div class="form-group-item">
                   <label class="form-label-title">Precio Unitario ($ MXN)</label>
-                  <input type="number" class="form-input-control" name="price" placeholder="Ej. 28" required />
+                  <input type="number" step="0.01" min="1" class="form-input-control" name="price" value="${existing ? Number(existing.price) : ""}" placeholder="Ej. 28" required />
                 </div>
                 <div class="form-group-item">
                   <label class="form-label-title">Unidad de Venta</label>
                   <select class="form-input-control" name="unit">
-                    <option value="kg">Por kilogramo (kg)</option>
-                    <option value="docena">Por docena</option>
-                    <option value="bolsa">Por bolsa / manojo</option>
+                    ${unitOptions.map(u => `<option value="${this.escapeHtml(u)}" ${u === currentUnit ? "selected" : ""}>${this.escapeHtml(u)}</option>`).join("")}
                   </select>
                 </div>
               </div>
 
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <div class="crop-modal-row">
                 <div class="form-group-item">
-                  <label class="form-label-title">Volumen Estimado de Corte</label>
-                  <input type="number" class="form-input-control" name="stock" placeholder="Ej. 60" required />
+                  <label class="form-label-title">Stock / Volumen Disponible</label>
+                  <input type="number" min="0" class="form-input-control" name="stock" value="${existing ? Number(existing.stock ?? 0) : ""}" placeholder="Ej. 60" required />
                 </div>
                 <div class="form-group-item">
                   <label class="form-label-title">Categoría</label>
                   <select class="form-input-control" name="category">
-                    ${ZAFRA_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join("")}
+                    ${ZAFRA_CATEGORIES.map(c => `<option value="${this.escapeHtml(c)}" ${c === curCategory ? "selected" : ""}>${this.escapeHtml(c)}</option>`).join("")}
+                  </select>
+                </div>
+              </div>
+
+              <div class="crop-modal-row">
+                <div class="form-group-item">
+                  <label class="form-label-title">Modalidad de Venta</label>
+                  <select class="form-input-control" name="isPreventa">
+                    <option value="true" ${curPreventa ? "selected" : ""}>Preventa (corte bajo pedido)</option>
+                    <option value="false" ${!curPreventa ? "selected" : ""}>Disponible inmediato</option>
+                  </select>
+                </div>
+                <div class="form-group-item">
+                  <label class="form-label-title">Estado del Lote</label>
+                  <select class="form-input-control" name="paused">
+                    <option value="false" ${!curPaused ? "selected" : ""}>Activo (visible en catálogo)</option>
+                    <option value="true" ${curPaused ? "selected" : ""}>Pausado temporalmente</option>
                   </select>
                 </div>
               </div>
 
               <div class="form-group-item">
-                <label class="form-label-title">Fecha Límite Estimada para Corte</label>
-                <input type="text" class="form-input-control" name="harvestDate" placeholder="Ej. Lunes 3 de Noviembre" required />
+                <label class="form-label-title">Disponibilidad / Fecha de Corte</label>
+                <input type="text" class="form-input-control" name="harvestDate" value="${this.escapeHtml(curHarvest)}" placeholder="Ej. Corte Jueves · Entrega Sábado" required />
               </div>
 
-              <button type="submit" class="btn btn-primary btn-block">
-                Publicar Lote en Plataforma
-              </button>
+              <div class="form-group-item">
+                <label class="form-label-title">Opciones de Entrega</label>
+                <input type="text" class="form-input-control" name="delivery" value="${this.escapeHtml(curDelivery)}" placeholder="Ej. Entrega en punto Zafra, feria o domicilio" />
+              </div>
+
+              <div class="form-group-item">
+                <label class="form-label-title">Descripción Corta</label>
+                <input type="text" class="form-input-control" name="description" value="${this.escapeHtml(curDesc)}" placeholder="Ej. Cosecha de temporal sin agroquímicos" />
+              </div>
+
+              <div class="form-group-item">
+                <label class="form-label-title">Imagen del Lote</label>
+                <select class="form-input-control" name="image">
+                  ${isEdit && existing.image ? `<option value="${this.escapeHtml(existing.image)}" selected>Mantener imagen actual</option>` : `<option value="auto" selected>Automática según la categoría</option>`}
+                  ${presetImages.map(pi => `<option value="${this.escapeHtml(pi.image)}">${this.escapeHtml(pi.label)}</option>`).join("")}
+                </select>
+              </div>
+
+              <div class="crop-modal-actions">
+                <button type="submit" class="btn btn-primary btn-block">
+                  ${isEdit ? "Guardar Cambios del Lote" : "Publicar Lote en Catálogo"}
+                </button>
+                ${isEdit ? `
+                  <button type="button" class="btn btn-ghost btn-block crop-delete-btn" id="crop-delete-btn">
+                    Eliminar lote del padrón
+                  </button>
+                ` : ""}
+              </div>
             </form>
           </div>
         </div>
@@ -3799,28 +3987,102 @@ class App {
       form.addEventListener("submit", (e) => {
         e.preventDefault();
         const formData = new FormData(form);
+        const name = String(formData.get("name") || "").trim();
+        const category = String(formData.get("category") || ZAFRA_CATEGORIES[0]);
+        const price = Number(formData.get("price"));
+        const unit = String(formData.get("unit") || "kg");
+        const stock = Number(formData.get("stock") || 0);
+        const harvestDate = String(formData.get("harvestDate") || "").trim();
+        const delivery = String(formData.get("delivery") || "").trim();
+        const description = String(formData.get("description") || "").trim();
+        const isPreventa = formData.get("isPreventa") === "true";
+        const paused = formData.get("paused") === "true";
+        const chosenImage = String(formData.get("image") || "auto");
+
         const products = store.getProducts();
+        if (isEdit) {
+          const idx = products.findIndex(p => p.id === productId);
+          if (idx !== -1) {
+            const updated = {
+              ...products[idx],
+              name,
+              category,
+              price,
+              unit,
+              stock,
+              harvestDate,
+              availability: harvestDate,
+              delivery: delivery || products[idx].delivery,
+              description: description || products[idx].description,
+              isPreventa,
+              paused,
+              image: this.resolveCropImage(category, chosenImage, products[idx].image)
+            };
+            products[idx] = updated;
+            store.saveProducts(products);
+
+            // Sincronizar nombre/precio/unidad si el producto ya está en la canasta
+            const cart = store.getCart();
+            let cartChanged = false;
+            cart.forEach(item => {
+              if (item.id === updated.id) {
+                item.name = updated.name;
+                item.price = updated.price;
+                item.unit = updated.unit;
+                item.image = updated.image;
+                cartChanged = true;
+              }
+            });
+            if (cartChanged) store.saveCart(cart);
+          }
+          this.closeModal();
+          this.showToast(`Lote "${name}" actualizado correctamente.`, "success");
+          this.render();
+          return;
+        }
+
         const newProduct = {
           id: `p-${Date.now()}`,
-          name: formData.get("name"),
-          producerId: "prod-1",
-          producerName: "Don Chente Gómez",
-          municipality: "Tlayacapan",
-          price: Number(formData.get("price")),
-          unit: formData.get("unit"),
-          image: "assets/img/prod_ejote.jpg",
-          isPreventa: true,
-          harvestDate: formData.get("harvestDate"),
-          stock: Number(formData.get("stock")),
-          category: formData.get("category"),
+          name,
+          producerId: producer.id,
+          producerName: producer.name,
+          municipality: producer.municipality,
+          price,
+          unit,
+          image: this.resolveCropImage(category, chosenImage, null),
+          isPreventa,
+          paused,
+          harvestDate,
+          availability: harvestDate,
+          delivery: delivery || "Entrega en punto Zafra o domicilio local",
+          stock,
+          category,
           tags: ["Sin agroquímicos", "Cosecha fresca"],
-          description: "Lote de corte fresco bajo pedido."
+          description: description || "Lote de corte fresco bajo pedido."
         };
 
         products.unshift(newProduct);
         store.saveProducts(products);
         this.closeModal();
-        this.showToast(`Lote ${newProduct.name} registrado con éxito.`, "success");
+        this.showToast(`Lote "${newProduct.name}" agregado con éxito.`, "success");
+        this.render();
+      });
+    }
+
+    const delBtn = document.getElementById("crop-delete-btn");
+    if (delBtn && isEdit) {
+      let armed = false;
+      delBtn.addEventListener("click", () => {
+        if (!armed) {
+          armed = true;
+          delBtn.textContent = "Toca otra vez para confirmar eliminación";
+          delBtn.classList.add("is-armed");
+          return;
+        }
+        const remaining = store.getProducts().filter(p => p.id !== productId);
+        store.saveProducts(remaining);
+        this.closeModal();
+        this.showToast(`Lote "${existing.name}" eliminado.`, "info");
         this.render();
       });
     }
