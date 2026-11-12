@@ -1470,6 +1470,7 @@ class App {
     this.navHistory = [];
     this.activeProducerId = "prod-1";
     this.producerLotFilter = "todos";
+    this.catalogFiltersOpen = false;
 
     try {
       const initialHash = window.location.hash.replace("#", "");
@@ -2105,92 +2106,214 @@ class App {
     `;
   }
 
-  renderConsumerCatalog() {
-    const products = store.getProducts().filter(p => !p.paused);
-    const municipalities = ["todos"].concat([...new Set(products.map(p => p.municipality))].sort());
-    const categories = ["todos"].concat(ZAFRA_CATEGORIES);
+  normalizeText(str) {
+    return String(str || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "");
+  }
 
+  getCatalogState() {
+    const products = store.getProducts().filter(p => !p.paused);
+    const municipalities = [...new Set(products.map(p => p.municipality))].sort();
+    const muniCounts = {};
+    const catCounts = {};
+    products.forEach(p => {
+      muniCounts[p.municipality] = (muniCounts[p.municipality] || 0) + 1;
+      catCounts[p.category] = (catCounts[p.category] || 0) + 1;
+    });
+
+    const queryNorm = this.normalizeText(this.searchQuery.trim());
     const filtered = products.filter(p => {
       const matchMuni = this.selectedMunicipality === "todos" || p.municipality === this.selectedMunicipality;
       const matchCat = this.selectedCategory === "todos" || p.category === this.selectedCategory;
-      const matchSearch = !this.searchQuery || 
-        p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        p.producerName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        p.municipality.toLowerCase().includes(this.searchQuery.toLowerCase());
+      const matchSearch = !queryNorm ||
+        this.normalizeText(p.name).includes(queryNorm) ||
+        this.normalizeText(p.producerName).includes(queryNorm) ||
+        this.normalizeText(p.municipality).includes(queryNorm) ||
+        this.normalizeText(p.category).includes(queryNorm);
       return matchMuni && matchCat && matchSearch;
     });
 
+    return { products, municipalities, muniCounts, catCounts, filtered };
+  }
+
+  renderCatalogActivePills() {
+    const pills = [];
+    if (this.selectedMunicipality !== "todos") {
+      pills.push(`
+        <button type="button" class="catalog-active-pill" data-clear-filter="muni">
+          <span>Municipio: <strong>${this.escapeHtml(this.selectedMunicipality)}</strong></span>
+          <span aria-hidden="true">&times;</span>
+        </button>
+      `);
+    }
+    if (this.selectedCategory !== "todos") {
+      pills.push(`
+        <button type="button" class="catalog-active-pill" data-clear-filter="cat">
+          <span>Categoría: <strong>${this.escapeHtml(this.selectedCategory)}</strong></span>
+          <span aria-hidden="true">&times;</span>
+        </button>
+      `);
+    }
+    if (this.searchQuery && this.searchQuery.trim()) {
+      pills.push(`
+        <button type="button" class="catalog-active-pill" data-clear-filter="search">
+          <span>Búsqueda: <strong>"${this.escapeHtml(this.searchQuery.trim())}"</strong></span>
+          <span aria-hidden="true">&times;</span>
+        </button>
+      `);
+    }
+    if (pills.length === 0) return "";
     return `
-      <div class="page-header">
+      <div class="catalog-active-row">
+        ${pills.join("")}
+        <button type="button" class="btn btn-ghost btn-sm catalog-clear-all-btn" id="reset-filters-btn">
+          Limpiar filtros
+        </button>
+      </div>
+    `;
+  }
+
+  renderCatalogResultsHtml(filtered) {
+    if (filtered.length === 0) {
+      return `
+        <div class="catalog-empty-card">
+          <p>No se encontraron productos con los filtros indicados.</p>
+          <button type="button" class="btn btn-secondary btn-sm" id="reset-filters-btn-empty">Mostrar todo el catálogo</button>
+        </div>
+      `;
+    }
+    if (this.selectedCategory === "todos") {
+      return ZAFRA_CATEGORIES.map((c, i) => {
+        const items = filtered.filter(p => p.category === c);
+        return items.length ? `
+          <section class="catalog-section">
+            <h3 class="catalog-section-title"><span>${String.fromCharCode(65 + i)}</span>${c}<small>${items.length} productos</small></h3>
+            <div class="catalog-grid">${items.map(p => this.renderProductCard(p)).join("")}</div>
+          </section>` : "";
+      }).join("");
+    }
+    const catIdx = ZAFRA_CATEGORIES.indexOf(this.selectedCategory);
+    const letter = catIdx >= 0 ? String.fromCharCode(65 + catIdx) : "•";
+    return `
+      <section class="catalog-section">
+        <h3 class="catalog-section-title"><span>${letter}</span>${this.escapeHtml(this.selectedCategory)}<small>${filtered.length} productos</small></h3>
+        <div class="catalog-grid">${filtered.map(p => this.renderProductCard(p)).join("")}</div>
+      </section>
+    `;
+  }
+
+  renderConsumerCatalog() {
+    const { products, municipalities, muniCounts, catCounts, filtered } = this.getCatalogState();
+    const hasFilterActive = this.selectedMunicipality !== "todos" || this.selectedCategory !== "todos" || Boolean(this.searchQuery.trim());
+
+    return `
+      <div class="page-header" style="margin-bottom: 14px;">
         <div>
           <h2 class="page-title">Catálogo</h2>
           <p class="page-subtitle">Aparta antes del corte: el productor cosecha solo lo pedido</p>
         </div>
-        <div style="font-size: 0.82rem; color: var(--text-muted); font-weight: 500;">
-          ${filtered.length} productos listados
+        <div class="catalog-count-badge" id="catalog-count-label">
+          ${filtered.length} ${filtered.length === 1 ? 'producto disponible' : 'productos disponibles'}
         </div>
       </div>
 
-      <div class="filter-toolbar">
-        <div class="search-field-wrap">
-          <span class="search-field-icon">${Icons.search}</span>
-          <input 
-            type="text" 
-            class="search-field-input" 
-            id="catalog-search-input" 
-            placeholder="Buscar jitomate, nopal, mango, productor..."
-            value="${this.searchQuery}"
-          />
+      <div class="filter-toolbar catalog-filter-shell">
+        <div class="catalog-controls-bar">
+          <div class="search-field-wrap catalog-search-box">
+            <span class="search-field-icon">${Icons.search}</span>
+            <input
+              type="text"
+              class="search-field-input"
+              id="catalog-search-input"
+              placeholder="Buscar producto, miel, flores, productor..."
+              value="${this.escapeHtml(this.searchQuery)}"
+            />
+            <button
+              type="button"
+              class="catalog-search-clear"
+              id="catalog-clear-search"
+              aria-label="Borrar búsqueda"
+              style="display: ${this.searchQuery ? 'inline-flex' : 'none'};"
+            >&times;</button>
+          </div>
+
+          <div class="catalog-selects-pair">
+            <div class="catalog-select-group">
+              <label for="catalog-muni-select">Municipio</label>
+              <select id="catalog-muni-select" class="catalog-select-control">
+                <option value="todos" ${this.selectedMunicipality === "todos" ? "selected" : ""}>Todo Morelos (${products.length})</option>
+                ${municipalities.map(m => `
+                  <option value="${this.escapeHtml(m)}" ${this.selectedMunicipality === m ? "selected" : ""}>
+                    ${this.escapeHtml(m)} (${muniCounts[m] || 0})
+                  </option>
+                `).join("")}
+              </select>
+            </div>
+
+            <div class="catalog-select-group">
+              <label for="catalog-cat-select">Categoría</label>
+              <select id="catalog-cat-select" class="catalog-select-control">
+                <option value="todos" ${this.selectedCategory === "todos" ? "selected" : ""}>Todas (A–I)</option>
+                ${ZAFRA_CATEGORIES.map((c, idx) => `
+                  <option value="${this.escapeHtml(c)}" ${this.selectedCategory === c ? "selected" : ""}>
+                    ${String.fromCharCode(65 + idx)} · ${this.escapeHtml(c)} (${catCounts[c] || 0})
+                  </option>
+                `).join("")}
+              </select>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="catalog-drawer-btn ${this.catalogFiltersOpen ? 'is-open' : ''}"
+            id="catalog-drawer-toggle"
+            aria-expanded="${this.catalogFiltersOpen ? 'true' : 'false'}"
+          >
+            <span>${this.catalogFiltersOpen ? 'Ocultar fichas' : 'Explorar por fichas'}</span>
+            <span class="drawer-chevron" aria-hidden="true">▾</span>
+          </button>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <span style="font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">
-              Municipio:
-            </span>
-            ${this.selectedMunicipality !== 'todos' || this.selectedCategory !== 'todos' ? `
-              <button class="btn btn-ghost btn-sm" id="reset-filters-btn" style="padding: 2px 6px; font-size: 0.75rem;">Limpiar filtros</button>
-            ` : ''}
-          </div>
-          <div class="filter-segments-row" id="muni-pills">
-            ${municipalities.map(m => `
-              <button class="filter-chip ${this.selectedMunicipality === m ? 'active' : ''}" data-muni="${m}">
-                ${m === 'todos' ? 'Todo Morelos' : m}
+        <div id="catalog-quick-drawer" class="catalog-quick-drawer ${this.catalogFiltersOpen ? 'is-open' : ''}" ${this.catalogFiltersOpen ? '' : 'hidden'}>
+          <div class="drawer-filter-group">
+            <div class="drawer-group-title">Secciones del Catálogo (A–I)</div>
+            <div class="filter-segments-row" id="cat-pills">
+              <button type="button" class="filter-chip ${this.selectedCategory === 'todos' ? 'active' : ''}" data-cat="todos">
+                Todas (${products.length})
               </button>
-            `).join("")}
+              ${ZAFRA_CATEGORIES.map((c, idx) => `
+                <button type="button" class="filter-chip ${this.selectedCategory === c ? 'active' : ''}" data-cat="${this.escapeHtml(c)}">
+                  ${String.fromCharCode(65 + idx)} · ${this.escapeHtml(c)}
+                </button>
+              `).join("")}
+            </div>
+          </div>
+
+          <div class="drawer-filter-group">
+            <div class="drawer-group-title">Municipios de Morelos</div>
+            <div class="filter-segments-row" id="muni-pills">
+              <button type="button" class="filter-chip ${this.selectedMunicipality === 'todos' ? 'active' : ''}" data-muni="todos">
+                Todo Morelos
+              </button>
+              ${municipalities.map(m => `
+                <button type="button" class="filter-chip ${this.selectedMunicipality === m ? 'active' : ''}" data-muni="${this.escapeHtml(m)}">
+                  ${this.escapeHtml(m)}
+                </button>
+              `).join("")}
+            </div>
           </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <span style="font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">
-            Categoría:
-          </span>
-          <div class="filter-segments-row" id="cat-pills">
-            ${categories.map(c => `
-              <button class="filter-chip ${this.selectedCategory === c ? 'active' : ''}" data-cat="${c}">
-                ${c === 'todos' ? 'Todas las categorías' : c}
-              </button>
-            `).join("")}
-          </div>
+        <div id="catalog-active-pills" style="display: ${hasFilterActive ? 'block' : 'none'};">
+          ${this.renderCatalogActivePills()}
         </div>
       </div>
 
-      ${filtered.length === 0 ? `
-        <div style="text-align: center; padding: 48px; background: #fff; border-radius: 8px; border: 1px solid var(--ui-border);">
-          <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 12px;">No se encontraron lotes activos con los filtros indicados.</p>
-          <button class="btn btn-secondary btn-sm" id="reset-filters-btn-empty">Reestablecer Parámetros de Búsqueda</button>
-        </div>
-      ` : `
-        ${this.selectedCategory === "todos" ? ZAFRA_CATEGORIES.map((c, i) => {
-          const items = filtered.filter(p => p.category === c);
-          return items.length ? `
-            <section class="catalog-section">
-              <h3 class="catalog-section-title"><span>${String.fromCharCode(65 + i)}</span>${c}<small>${items.length} productos</small></h3>
-              <div class="catalog-grid">${items.map(p => this.renderProductCard(p)).join("")}</div>
-            </section>` : "";
-        }).join("") : `
-          <div class="catalog-grid">${filtered.map(p => this.renderProductCard(p)).join("")}</div>`}
-      `}
+      <div id="catalog-results-container">
+        ${this.renderCatalogResultsHtml(filtered)}
+      </div>
     `;
   }
 
@@ -3247,6 +3370,172 @@ class App {
   // ==========================================================================
   // EVENT BINDINGS
   // ==========================================================================
+  bindCatalogCardEvents(scopeEl = this.appEl) {
+    if (!scopeEl) return;
+    scopeEl.querySelectorAll("[data-add-id]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.addId;
+        if (store.addToCart(id, 1)) {
+          this.showToast("Lote agregado a la canasta", "success");
+        } else {
+          this.showToast("Este lote está pausado temporalmente", "info");
+        }
+      });
+    });
+
+    scopeEl.querySelectorAll("[data-producer-id]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.openProducerModal(btn.dataset.producerId);
+      });
+    });
+
+    const emptyReset = scopeEl.querySelector("#reset-filters-btn-empty");
+    if (emptyReset) {
+      emptyReset.addEventListener("click", () => {
+        this.selectedMunicipality = "todos";
+        this.selectedCategory = "todos";
+        this.searchQuery = "";
+        this.updateCatalogResults();
+      });
+    }
+  }
+
+  bindCatalogActivePillEvents() {
+    const activeWrap = document.getElementById("catalog-active-pills");
+    if (!activeWrap) return;
+    activeWrap.querySelectorAll("[data-clear-filter]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.clearFilter;
+        if (key === "muni") this.selectedMunicipality = "todos";
+        if (key === "cat") this.selectedCategory = "todos";
+        if (key === "search") this.searchQuery = "";
+        this.updateCatalogResults();
+      });
+    });
+    const resetBtn = activeWrap.querySelector("#reset-filters-btn");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", () => {
+        this.selectedMunicipality = "todos";
+        this.selectedCategory = "todos";
+        this.searchQuery = "";
+        this.updateCatalogResults();
+      });
+    }
+  }
+
+  updateCatalogResults() {
+    const { filtered } = this.getCatalogState();
+    const resultsEl = document.getElementById("catalog-results-container");
+    if (resultsEl) {
+      resultsEl.innerHTML = this.renderCatalogResultsHtml(filtered);
+      this.bindCatalogCardEvents(resultsEl);
+    }
+
+    const countEl = document.getElementById("catalog-count-label");
+    if (countEl) {
+      countEl.textContent = `${filtered.length} ${filtered.length === 1 ? 'producto disponible' : 'productos disponibles'}`;
+    }
+
+    const searchInput = document.getElementById("catalog-search-input");
+    if (searchInput && searchInput.value !== this.searchQuery) {
+      searchInput.value = this.searchQuery;
+    }
+
+    const clearSearchBtn = document.getElementById("catalog-clear-search");
+    if (clearSearchBtn) {
+      clearSearchBtn.style.display = this.searchQuery ? "inline-flex" : "none";
+    }
+
+    const muniSelect = document.getElementById("catalog-muni-select");
+    if (muniSelect) muniSelect.value = this.selectedMunicipality;
+    const catSelect = document.getElementById("catalog-cat-select");
+    if (catSelect) catSelect.value = this.selectedCategory;
+
+    this.appEl.querySelectorAll("[data-muni]").forEach(p => {
+      p.classList.toggle("active", p.dataset.muni === this.selectedMunicipality);
+    });
+    this.appEl.querySelectorAll("[data-cat]").forEach(p => {
+      p.classList.toggle("active", p.dataset.cat === this.selectedCategory);
+    });
+
+    const activeWrap = document.getElementById("catalog-active-pills");
+    if (activeWrap) {
+      const pillsHtml = this.renderCatalogActivePills();
+      activeWrap.innerHTML = pillsHtml;
+      activeWrap.style.display = pillsHtml ? "block" : "none";
+      this.bindCatalogActivePillEvents();
+    }
+
+    this.updateBackBar();
+  }
+
+  bindCatalogFilterControls() {
+    const searchInput = document.getElementById("catalog-search-input");
+    if (searchInput) {
+      searchInput.addEventListener("input", (e) => {
+        this.searchQuery = e.target.value;
+        this.updateCatalogResults();
+      });
+    }
+
+    const clearSearchBtn = document.getElementById("catalog-clear-search");
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener("click", () => {
+        this.searchQuery = "";
+        this.updateCatalogResults();
+        if (searchInput && typeof searchInput.focus === "function") searchInput.focus();
+      });
+    }
+
+    const muniSelect = document.getElementById("catalog-muni-select");
+    if (muniSelect) {
+      muniSelect.addEventListener("change", (e) => {
+        this.selectedMunicipality = e.target.value;
+        this.updateCatalogResults();
+      });
+    }
+
+    const catSelect = document.getElementById("catalog-cat-select");
+    if (catSelect) {
+      catSelect.addEventListener("change", (e) => {
+        this.selectedCategory = e.target.value;
+        this.updateCatalogResults();
+      });
+    }
+
+    const drawerToggle = document.getElementById("catalog-drawer-toggle");
+    const quickDrawer = document.getElementById("catalog-quick-drawer");
+    if (drawerToggle && quickDrawer) {
+      drawerToggle.addEventListener("click", () => {
+        this.catalogFiltersOpen = !this.catalogFiltersOpen;
+        quickDrawer.hidden = !this.catalogFiltersOpen;
+        quickDrawer.classList.toggle("is-open", this.catalogFiltersOpen);
+        drawerToggle.classList.toggle("is-open", this.catalogFiltersOpen);
+        drawerToggle.setAttribute("aria-expanded", this.catalogFiltersOpen ? "true" : "false");
+        const span = drawerToggle.querySelector("span");
+        if (span) span.textContent = this.catalogFiltersOpen ? "Ocultar fichas" : "Explorar por fichas";
+      });
+    }
+
+    this.appEl.querySelectorAll("[data-muni]").forEach(pill => {
+      pill.addEventListener("click", () => {
+        this.selectedMunicipality = pill.dataset.muni;
+        this.updateCatalogResults();
+      });
+    });
+
+    this.appEl.querySelectorAll("[data-cat]").forEach(pill => {
+      pill.addEventListener("click", () => {
+        this.selectedCategory = pill.dataset.cat;
+        this.updateCatalogResults();
+      });
+    });
+
+    this.bindCatalogActivePillEvents();
+  }
+
   bindRoleViewEvents() {
     this.appEl.querySelectorAll(".subnav-item").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -3265,67 +3554,8 @@ class App {
     const homeViewWorkshop = document.getElementById("home-view-workshop-btn");
     if (homeViewWorkshop) homeViewWorkshop.addEventListener("click", () => this.setConsumerTab("ferias"));
 
-    this.appEl.querySelectorAll("[data-add-id]").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const id = btn.dataset.addId;
-        if (store.addToCart(id, 1)) {
-          this.showToast("Lote agregado a la canasta", "success");
-        } else {
-          this.showToast("Este lote está pausado temporalmente", "info");
-        }
-      });
-    });
-
-    this.appEl.querySelectorAll("[data-producer-id]").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        this.openProducerModal(btn.dataset.producerId);
-      });
-    });
-
-    const searchInput = document.getElementById("catalog-search-input");
-    if (searchInput) {
-      searchInput.addEventListener("input", (e) => {
-        this.searchQuery = e.target.value;
-        const container = document.getElementById("main-view");
-        if (container) container.innerHTML = this.renderConsumerCatalog();
-        this.bindRoleViewEvents();
-      });
-    }
-
-    this.appEl.querySelectorAll("[data-muni]").forEach(pill => {
-      pill.addEventListener("click", () => {
-        this.selectedMunicipality = pill.dataset.muni;
-        const container = document.getElementById("main-view");
-        if (container) container.innerHTML = this.renderConsumerCatalog();
-        this.updateBackBar();
-        this.bindRoleViewEvents();
-      });
-    });
-
-    this.appEl.querySelectorAll("[data-cat]").forEach(pill => {
-      pill.addEventListener("click", () => {
-        this.selectedCategory = pill.dataset.cat;
-        const container = document.getElementById("main-view");
-        if (container) container.innerHTML = this.renderConsumerCatalog();
-        this.updateBackBar();
-        this.bindRoleViewEvents();
-      });
-    });
-
-    const resetFiltersBtn = document.getElementById("reset-filters-btn") || document.getElementById("reset-filters-btn-empty");
-    if (resetFiltersBtn) {
-      resetFiltersBtn.addEventListener("click", () => {
-        this.selectedMunicipality = "todos";
-        this.selectedCategory = "todos";
-        this.searchQuery = "";
-        const container = document.getElementById("main-view");
-        if (container) container.innerHTML = this.renderConsumerCatalog();
-        this.updateBackBar();
-        this.bindRoleViewEvents();
-      });
-    }
+    this.bindCatalogCardEvents(this.appEl);
+    this.bindCatalogFilterControls();
 
     // Map Route Selector Pills (Smooth update without rebuilding map)
     this.appEl.querySelectorAll("#map-route-selector [data-route-id]").forEach(btn => {
