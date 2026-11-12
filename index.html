@@ -609,10 +609,20 @@ const INITIAL_EVENTS = [
   {
     id: "ev-1",
     type: "feria",
+    typeLabel: "Feria Regional",
     title: "Gran Feria 'Del Campo a Tu Mesa'",
     date: "Próximo Domingo 15 de Noviembre · 9:00 a 16:00 hrs",
+    schedule: "9:00 a 16:00 hrs",
     location: "Zócalo de Cuautla, Morelos (Frente al Palacio Municipal)",
+    address: "Plaza y Fuerte de Galeana (Alameda), Centro Histórico, Cuautla, Mor.",
     municipality: "Cuautla",
+    lat: 18.8122,
+    lng: -98.9556,
+    instructor: "Red de 35 Productores Zafra & Brigadistas UAEM",
+    price: 0,
+    capacity: 500,
+    bookedCount: 420,
+    workshops: ["Degustación de arroz morelense", "Entrega directa sin envío", "Charla de agricultura limpia"],
     description: "Más de 35 productores de todo Morelos. Conoce a quien siembra tus alimentos, prueba cosechas frescas, degusta comida típica y recoge tus pedidos sin costo de envío.",
     image: "assets/img/feria.jpg",
     attendeesCount: 420,
@@ -621,14 +631,20 @@ const INITIAL_EVENTS = [
   {
     id: "ev-2",
     type: "taller",
+    typeLabel: "Taller Práctico",
     title: "Taller Práctico: Huerto Biointensivo en Casa",
     date: "Sábado 21 de Noviembre · 10:00 a 13:00 hrs",
+    schedule: "10:00 a 13:00 hrs",
     location: "Huerto Comunitario El Caracol, Yautepec",
+    address: "Calle Paseo Tlahuica s/n, Barrio San Juan, Yautepec de Zaragoza, Mor.",
     municipality: "Yautepec",
+    lat: 18.8822,
+    lng: -99.0664,
     instructor: "Valeria Soto (Joven estudiante de Agronomía UAEM)",
     price: 180,
     capacity: 20,
     bookedCount: 14,
+    workshops: ["Germinación en charola", "Preparación de sustratos vivos", "Asociación de hortalizas"],
     description: "Aprende a germinar, preparar sustratos vivos y asociar cultivos para tener tus propias hortalizas en azotea o jardín. Incluye kit de semillas criollas y constancia.",
     image: "assets/img/taller_huerto.jpg",
     pickupAvailable: false
@@ -636,15 +652,84 @@ const INITIAL_EVENTS = [
   {
     id: "ev-3",
     type: "campamento",
+    typeLabel: "Campamento Rural",
     title: "Campamento 'Pequeños Cosechadores' (Para niños y familias)",
     date: "28 y 29 de Noviembre · Fin de semana en el campo",
+    schedule: "Sábado 9:00 hrs a Domingo 15:00 hrs",
     location: "Rancho El Fresno, Tlayacapan",
+    address: "Camino Real a Oaxtepec Km 3.5, Rancho El Fresno, Tlayacapan, Mor.",
     municipality: "Tlayacapan",
+    lat: 18.9567,
+    lng: -98.9819,
     instructor: "Don Chente Gómez y Jóvenes Promotores",
     price: 450,
     capacity: 25,
     bookedCount: 19,
+    workshops: ["Pizca de jitomate criollo", "Taller de tortillas nixtamalizadas", "Recorrido por milpa"],
     description: "Fin de semana en el campo: pizca de jitomates, noche de fogata, historias del volcán y taller de tortillas de maíz nixtamalizado.",
+    image: "assets/img/familia_productora.jpg",
+    pickupAvailable: false
+  },
+  {
+    id: "ev-4",
+    type: "taller",
+    typeLabel: "Taller Artesanal",
+    title: "Taller: Dulces de Amaranto y Empaquetado",
+    date: "Viernes 27 de Noviembre · 11:00 a 14:00 hrs",
+    schedule: "11:00 a 14:00 hrs",
+    location: "Centro Comunitario de Huazulco, Temoac",
+    address: "Av. Hidalgo #18, Comunidad de Huazulco, Temoac, Mor.",
+    municipality: "Temoac",
+    lat: 18.7733,
+    lng: -98.7767,
+    instructor: "Cooperativa Amaranto Huazulco & Juventudes Zafra",
+    price: 0,
+    capacity: 30,
+    bookedCount: 18,
+    workshops: ["Reventado tradicional de amaranto", "Elaboración de alegrías", "Etiquetado artesanal"],
+    description: "Aprende el proceso completo del amaranto morelense desde el comal hasta el armado de alegrías, obleas y empaque listo para venta directa.",
+    image: "assets/img/feria.jpg",
+    pickupAvailable: true
+  },
+  {
+    id: "ev-5",
+    type: "taller",
+    typeLabel: "Taller de Campo",
+    title: "Taller: Cultivo y Aprovechamiento del Nopal",
+    date: "Sábado 5 de Diciembre · 9:30 a 13:00 hrs",
+    schedule: "9:30 a 13:00 hrs",
+    location: "Unidad Productiva Los Altos, Tlalnepantla",
+    address: "Carretera Tlayacapan–Tlalnepantla Km 6, Barrio San Pedro, Tlalnepantla, Mor.",
+    municipality: "Tlalnepantla",
+    lat: 19.0083,
+    lng: -98.9972,
+    instructor: "Sociedad Nopalera Altos de Morelos",
+    price: 120,
+    capacity: 24,
+    bookedCount: 11,
+    workshops: ["Poda y sanidad de penca", "Deshidratado y harina de nopal", "Conservas en escabeche"],
+    description: "Recorrido práctico por huerta nopalera de altura con demostración de corte limpio, aprovechamiento integral y elaboración de conservas.",
+    image: "assets/img/taller_huerto.jpg",
+    pickupAvailable: true
+  },
+  {
+    id: "ev-6",
+    type: "taller",
+    typeLabel: "Taller Viverista",
+    title: "Taller: Arreglos Florales y Huertos Urbanos",
+    date: "Domingo 13 de Diciembre · 10:00 a 13:30 hrs",
+    schedule: "10:00 a 13:30 hrs",
+    location: "Corredor Viverista Tejalpa, Jiutepec",
+    address: "Blvd. Cuauhnáhuac Km 7.5, Vivero Los Sauces, Jiutepec, Mor.",
+    municipality: "Jiutepec",
+    lat: 18.8803,
+    lng: -99.1764,
+    instructor: "Viveristas Unidos de Morelos",
+    price: 150,
+    capacity: 22,
+    bookedCount: 15,
+    workshops: ["Propagación por esqueje", "Compostaje doméstico", "Diseño de arreglos de temporada"],
+    description: "Sesión guiada entre invernaderos para aprender propagación de ornamentales, mezcla de sustratos, compostaje y armado de arreglos florales.",
     image: "assets/img/familia_productora.jpg",
     pickupAvailable: false
   }
@@ -1018,18 +1103,198 @@ const INITIAL_MAP_MUNICIPALITIES = [
 ];
 
 const INITIAL_ZAFRA_FAIRS = [
-  { id: "f-1", name: "Feria de la Tierra", type: "Feria General", date: "8 de Noviembre", location: "Zócalo de Tepoztlán", focus: "Sustentabilidad, semillas criollas y cuidado del suelo." },
-  { id: "f-2", name: "Feria de Sabores de Morelos", type: "Gastronómica", date: "15 de Noviembre", location: "Zócalo de Cuautla", focus: "Platillos tradicionales, degustaciones y cocina campesina." },
-  { id: "f-3", name: "Feria Joven del Campo", type: "Juventudes", date: "22 de Noviembre", location: "Campus Chamilpa UAEM, Cuernavaca", focus: "Encuentro de brigadistas universitarios y jóvenes productores." },
-  { id: "f-4", name: "Feria de Flores y Huertos", type: "Ornamental", date: "29 de Noviembre", location: "Parque Acuático Oaxtepec / Yautepec", focus: "Venta de ornatos, nochebuenas, rosas y talleres de huerto." },
-  { id: "f-5", name: "Feria Itinerante de Productores", type: "Itinerante", date: "6 de Diciembre", location: "Plaza Cívica de Ayala", focus: "Comercio directo a pie de comunidad sin intermediarios." },
-  { id: "f-6", name: "Feria del Arroz Morelense", type: "Especializada", date: "13 de Diciembre", location: "Molino San José, Jojutla", focus: "Celebración del grano con Denominación de Origen Morelos." },
-  { id: "f-7", name: "Feria del Amaranto y los Dulces Regionales", type: "Especializada", date: "20 de Diciembre", location: "Centro Comunitario Temoac", focus: "Alegrías, obleas, palanquetas y dulces tradicionales." },
-  { id: "f-8", name: "Feria del Nopal y el Aguacate", type: "Especializada", date: "10 de Enero", location: "Plaza Principal Tlalnepantla", focus: "Variedades de nopal verdura, aguacate hass y conservas." },
-  { id: "f-9", name: "Feria de Quesos Artesanales y Miel", type: "Especializada", date: "17 de Enero", location: "Tehuixtla / Puente de Ixtla", focus: "Quesos de cincho, panela artesanal y mieles multiflorales." },
-  { id: "f-10", name: "Feria de Frutas de Temporada", type: "Cosecha", date: "24 de Enero", location: "Huerta Colectiva Yecapixtla", focus: "Ciruela jocote, mango criollo, higo, durazno y mermeladas." },
-  { id: "f-11", name: "Mercado de Productores Locales", type: "Mercado", date: "Cada Sábado", location: "Explanada Municipal Yautepec", focus: "Venta continua de despensas frescas de temporada." },
-  { id: "f-12", name: "Exposición de Emprendimientos Agroalimentarios Juveniles", type: "Emprendimiento", date: "7 de Febrero", location: "Centro de Congresos Cuernavaca", focus: "Muestra de innovación de estudiantes de servicio social." }
+  {
+    id: "f-1",
+    name: "Feria de la Tierra",
+    type: "Feria General",
+    date: "8 de Noviembre",
+    schedule: "9:00 a 17:00 hrs",
+    municipality: "Tepoztlán",
+    location: "Zócalo de Tepoztlán",
+    address: "Plaza Cívica y Explanada Municipal, Centro de Tepoztlán, Mor.",
+    lat: 18.9854,
+    lng: -99.0998,
+    organizer: "Colectivo Agroecológico Tepoztlán & Red Zafra",
+    costLabel: "Entrada Libre",
+    workshops: ["Intercambio de semillas criollas", "Compostaje comunitario", "Cuidado del suelo"],
+    focus: "Sustentabilidad, semillas criollas y cuidado del suelo."
+  },
+  {
+    id: "f-2",
+    name: "Feria de Sabores de Morelos",
+    type: "Gastronómica",
+    date: "15 de Noviembre",
+    schedule: "10:00 a 18:00 hrs",
+    municipality: "Cuautla",
+    location: "Zócalo de Cuautla",
+    address: "Plaza y Fuerte de Galeana, Centro Histórico, Cuautla, Mor.",
+    lat: 18.8122,
+    lng: -98.9556,
+    organizer: "Cocineras Tradicionales y Productores de Oriente",
+    costLabel: "Entrada Libre",
+    workshops: ["Cocina campesina tradicional", "Degustación de salsas y moles", "Conservas regionales"],
+    focus: "Platillos tradicionales, degustaciones y cocina campesina."
+  },
+  {
+    id: "f-3",
+    name: "Feria Joven del Campo",
+    type: "Juventudes",
+    date: "22 de Noviembre",
+    schedule: "9:00 a 15:30 hrs",
+    municipality: "Cuernavaca",
+    location: "Campus Chamilpa UAEM, Cuernavaca",
+    address: "Av. Universidad #1001, Explanada Fac. de Ciencias Agropecuarias, Chamilpa, Cuernavaca, Mor.",
+    lat: 18.9818,
+    lng: -99.2367,
+    organizer: "Brigadistas de Servicio Social UAEM",
+    costLabel: "Entrada Libre",
+    workshops: ["Comercialización digital para el campo", "Fotografía de producto", "Empaquetado sustentable"],
+    focus: "Encuentro de brigadistas universitarios y jóvenes productores."
+  },
+  {
+    id: "f-4",
+    name: "Feria de Flores y Huertos",
+    type: "Ornamental",
+    date: "29 de Noviembre",
+    schedule: "9:30 a 17:00 hrs",
+    municipality: "Yautepec",
+    location: "Parque Acuático Oaxtepec / Yautepec",
+    address: "Carretera Cocoyoc–Oaxtepec Km 27, Explanada Acceso Principal, Oaxtepec, Yautepec, Mor.",
+    lat: 18.9056,
+    lng: -98.9694,
+    organizer: "Red Viverista de Oaxtepec y Yautepec",
+    costLabel: "Entrada Libre",
+    workshops: ["Armado de huertos urbanos", "Cuidado de nochebuenas y rosales", "Propagación por esqueje"],
+    focus: "Venta de ornatos, nochebuenas, rosas y talleres de huerto."
+  },
+  {
+    id: "f-5",
+    name: "Feria Itinerante de Productores",
+    type: "Itinerante",
+    date: "6 de Diciembre",
+    schedule: "8:30 a 15:00 hrs",
+    municipality: "Ayala",
+    location: "Plaza Cívica de Ayala",
+    address: "Plaza Principal Coronel Francisco Ayala, Villa de Ayala Centro, Mor.",
+    lat: 18.7667,
+    lng: -98.9833,
+    organizer: "Productores Agrícolas y Acuícolas de Ayala",
+    costLabel: "Entrada Libre",
+    workshops: ["Introducción a la acuicultura", "Cultivo de hortalizas de riego", "Venta directa pie de parcela"],
+    focus: "Comercio directo a pie de comunidad sin intermediarios."
+  },
+  {
+    id: "f-6",
+    name: "Feria del Arroz Morelense",
+    type: "Especializada",
+    date: "13 de Diciembre",
+    schedule: "9:00 a 17:00 hrs",
+    municipality: "Jojutla",
+    location: "Molino San José, Jojutla",
+    address: "Calle Ricardo Sánchez #115, Barrio de Panchimalco, Molino San José, Jojutla, Mor.",
+    lat: 18.6167,
+    lng: -99.1833,
+    organizer: "Arroceros del Sur de Morelos D.O.",
+    costLabel: "Entrada Libre",
+    workshops: ["Beneficio tradicional del grano", "Cocina con arroz morelense", "Recorrido guiado al molino"],
+    focus: "Celebración del grano con Denominación de Origen Morelos."
+  },
+  {
+    id: "f-7",
+    name: "Feria del Amaranto y los Dulces Regionales",
+    type: "Especializada",
+    date: "20 de Diciembre",
+    schedule: "10:00 a 18:00 hrs",
+    municipality: "Temoac",
+    location: "Centro Comunitario Temoac",
+    address: "Plaza Principal de Huazulco / Centro Comunitario Temoac, Mor.",
+    lat: 18.7733,
+    lng: -98.7767,
+    organizer: "Productores de Amaranto de Huazulco y Temoac",
+    costLabel: "Entrada Libre",
+    workshops: ["Elaboración de alegrías de amaranto", "Obleas y palanquetas", "Etiquetado y empaque"],
+    focus: "Alegrías, obleas, palanquetas y dulces tradicionales."
+  },
+  {
+    id: "f-8",
+    name: "Feria del Nopal y el Aguacate",
+    type: "Especializada",
+    date: "10 de Enero",
+    schedule: "9:00 a 16:30 hrs",
+    municipality: "Tlalnepantla",
+    location: "Plaza Principal Tlalnepantla",
+    address: "Explanada Municipal de Tlalnepantla, Zona Altos de Morelos, Mor.",
+    lat: 19.0083,
+    lng: -98.9972,
+    organizer: "Productores Nopaleros y Aguacateros de Los Altos",
+    costLabel: "Entrada Libre",
+    workshops: ["Cultivo y aprovechamiento del nopal", "Cosecha de aguacate hass", "Mermeladas y conservas"],
+    focus: "Variedades de nopal verdura, aguacate hass y conservas."
+  },
+  {
+    id: "f-9",
+    name: "Feria de Quesos Artesanales y Miel",
+    type: "Especializada",
+    date: "17 de Enero",
+    schedule: "9:30 a 16:30 hrs",
+    municipality: "Puente de Ixtla",
+    location: "Tehuixtla / Puente de Ixtla",
+    address: "Parque Central de Tehuixtla, Puente de Ixtla, Morelos.",
+    lat: 18.5608,
+    lng: -99.2725,
+    organizer: "Queserías Artesanales y Apicultores del Sur",
+    costLabel: "Entrada Libre",
+    workshops: ["Cata de mieles multiflorales", "Elaboración de queso de cincho y requesón", "Cuidado apícola"],
+    focus: "Quesos de cincho, panela artesanal y mieles multiflorales."
+  },
+  {
+    id: "f-10",
+    name: "Feria de Frutas de Temporada",
+    type: "Cosecha",
+    date: "24 de Enero",
+    schedule: "9:00 a 16:00 hrs",
+    municipality: "Yecapixtla",
+    location: "Huerta Colectiva Yecapixtla",
+    address: "Camino a Mexquemeca s/n, Huerta Colectiva El Vergel, Yecapixtla, Mor.",
+    lat: 18.8847,
+    lng: -98.8631,
+    organizer: "Huertas Familiares de Yecapixtla y Ocuituco",
+    costLabel: "Entrada Libre",
+    workshops: ["Transformación de frutas y deshidratado", "Preparación de conservas", "Cosecha directa"],
+    focus: "Ciruela jocote, mango criollo, higo, durazno y mermeladas."
+  },
+  {
+    id: "f-11",
+    name: "Mercado de Productores Locales",
+    type: "Mercado",
+    date: "Cada Sábado",
+    schedule: "8:00 a 14:30 hrs",
+    municipality: "Yautepec",
+    location: "Explanada Municipal Yautepec",
+    address: "Calle Morelos #1, Frente a la Presidencia Municipal, Yautepec, Mor.",
+    lat: 18.8822,
+    lng: -99.0664,
+    organizer: "Comité Local de Productores Zafra Yautepec",
+    costLabel: "Entrada Libre",
+    workshops: ["Armado de canastas de temporada", "Consumo local sin plásticos"],
+    focus: "Venta continua de despensas frescas de temporada."
+  },
+  {
+    id: "f-12",
+    name: "Exposición de Emprendimientos Agroalimentarios Juveniles",
+    type: "Emprendimiento",
+    date: "7 de Febrero",
+    schedule: "10:00 a 18:00 hrs",
+    municipality: "Xochitepec / Cuernavaca",
+    location: "Centro de Congresos Cuernavaca",
+    address: "Autopista México–Acapulco Km 112, Centro de Congresos Morelos, Alpuyeca/Xochitepec, Mor.",
+    lat: 18.8075,
+    lng: -99.2225,
+    organizer: "Programa Juventudes Zafra & Instituciones Educativas",
+    costLabel: "Entrada Libre",
+    workshops: ["Emprendimiento agroalimentario", "Presentación de proyectos de servicio social", "Networking comercial"],
+    focus: "Muestra de innovación de estudiantes de servicio social."
+  }
 ];
 
 const INITIAL_REGIONS = INITIAL_ZAFRA_ROUTES;
@@ -1230,7 +1495,9 @@ class DataStore {
     try {
       const data = localStorage.getItem("rm_events");
       const parsed = data ? JSON.parse(data) : null;
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_EVENTS;
+      if (!Array.isArray(parsed) || parsed.length === 0) return INITIAL_EVENTS;
+      const byId = new Map(parsed.map(ev => [ev.id, ev]));
+      return INITIAL_EVENTS.map(base => byId.has(base.id) ? { ...base, ...byId.get(base.id), lat: base.lat, lng: base.lng, workshops: base.workshops, address: base.address, schedule: base.schedule } : base);
     } catch (e) {
       return INITIAL_EVENTS;
     }
@@ -1270,10 +1537,40 @@ class DataStore {
     try {
       const data = localStorage.getItem("rm_zafra_fairs");
       const parsed = data ? JSON.parse(data) : null;
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_ZAFRA_FAIRS;
+      if (!Array.isArray(parsed) || parsed.length === 0) return INITIAL_ZAFRA_FAIRS;
+      const byId = new Map(parsed.map(f => [f.id, f]));
+      return INITIAL_ZAFRA_FAIRS.map(base => byId.has(base.id) ? { ...base, ...byId.get(base.id), lat: base.lat, lng: base.lng, workshops: base.workshops, address: base.address, schedule: base.schedule, municipality: base.municipality, organizer: base.organizer, costLabel: base.costLabel } : base);
     } catch (e) {
       return INITIAL_ZAFRA_FAIRS;
     }
+  }
+
+  getFairVisits() {
+    try {
+      const data = localStorage.getItem("rm_fair_visits");
+      const parsed = data ? JSON.parse(data) : null;
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  saveFairVisit(itemId, visitInfo) {
+    const visits = this.getFairVisits();
+    visits[itemId] = visitInfo;
+    try {
+      localStorage.setItem("rm_fair_visits", JSON.stringify(visits));
+    } catch (e) {}
+    return visits;
+  }
+
+  removeFairVisit(itemId) {
+    const visits = this.getFairVisits();
+    delete visits[itemId];
+    try {
+      localStorage.setItem("rm_fair_visits", JSON.stringify(visits));
+    } catch (e) {}
+    return visits;
   }
 
   getYouth() {
@@ -1487,6 +1784,8 @@ class App {
     this.currentTileStyle = "topo";
     this.currentTileLayer = null;
     this.isMapFullscreen = false;
+    this.feriasFilter = "todos";
+    this.fairModalMap = null;
 
     this.initElements();
     this.bindEvents();
@@ -2437,53 +2736,165 @@ class App {
   }
 
   // ==========================================================================
-  // FERIAS & EVENTOS DE ZAFRA (12 EVENTOS OFICIALES)
+  // FERIAS & TALLERES DE ZAFRA (UBICACIÓN EN MAPA EMERGENTE + CONFIRMACIÓN)
   // ==========================================================================
+  getAllFairsAndWorkshops() {
+    const events = store.getEvents().map((ev, idx) => ({
+      ...ev,
+      kind: ev.type === "feria" ? "feria" : "taller",
+      displayName: ev.title,
+      shortType: ev.typeLabel || (ev.type === "taller" ? "Taller Práctico" : ev.type === "campamento" ? "Campamento" : "Feria Regional"),
+      whatItIs: ev.description,
+      organizer: ev.instructor || "Red Zafra Morelos",
+      costLabel: ev.price && Number(ev.price) > 0 ? `$${ev.price} MXN` : "Entrada Libre",
+      badgeOrder: `Actividad ${idx + 1}`
+    }));
+
+    const fairs = store.getZafraFairs().map((f, idx) => ({
+      ...f,
+      kind: "feria",
+      displayName: f.name,
+      shortType: f.type,
+      whatItIs: f.focus,
+      organizer: f.organizer || "Productores y Jóvenes Zafra",
+      costLabel: f.costLabel || "Entrada Libre",
+      badgeOrder: `Feria ${idx + 1}`
+    }));
+
+    return { events, fairs, all: [...events, ...fairs] };
+  }
+
+  findFairOrWorkshop(itemId) {
+    return this.getAllFairsAndWorkshops().all.find(item => item.id === itemId) || null;
+  }
+
+  renderFairEventCard(item, visit) {
+    const isConfirmed = Boolean(visit);
+    const workshopsPreview = Array.isArray(item.workshops) ? item.workshops.slice(0, 2) : [];
+
+    return `
+      <div
+        class="fair-event-card fair-clickable-card ${isConfirmed ? 'is-confirmed' : ''}"
+        data-open-fair-id="${item.id}"
+        role="button"
+        tabindex="0"
+        aria-label="Ver ubicación y detalles de ${this.escapeHtml(item.displayName)}"
+      >
+        <div>
+          <div class="fair-card-top">
+            <span class="fair-num-badge">${this.escapeHtml(item.badgeOrder)} · ${this.escapeHtml(item.shortType)}</span>
+            <span class="fair-date-tag">${this.escapeHtml(item.date)}</span>
+          </div>
+
+          <h4 class="fair-card-title">${this.escapeHtml(item.displayName)}</h4>
+
+          <div class="fair-card-loc">
+            ${Icons.mapPin}
+            <span>${this.escapeHtml(item.location)}</span>
+          </div>
+
+          <p class="fair-card-desc">${this.escapeHtml(item.whatItIs)}</p>
+
+          ${workshopsPreview.length ? `
+            <div class="fair-card-workshops">
+              ${workshopsPreview.map(w => `<span class="fair-mini-chip">${this.escapeHtml(w)}</span>`).join("")}
+            </div>
+          ` : ""}
+        </div>
+
+        <div class="fair-card-footer">
+          <div class="fair-card-status">
+            ${isConfirmed
+              ? `<span class="fair-confirmed-badge">✓ Visita confirmada · ${this.escapeHtml(visit.folio)}</span>`
+              : `<span class="fair-cost-badge">${this.escapeHtml(item.costLabel)}</span>`}
+          </div>
+          <button
+            type="button"
+            class="btn ${isConfirmed ? 'btn-primary' : 'btn-secondary'} btn-sm fair-rsvp-btn"
+            data-open-fair-id="${item.id}"
+          >
+            ${isConfirmed ? 'Ver mapa y pase' : 'Ver ubicación y confirmar'}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   renderConsumerEvents() {
-    const fairs = store.getZafraFairs();
+    const { events, fairs, all } = this.getAllFairsAndWorkshops();
+    const visits = store.getFairVisits();
+    const confirmedCount = all.filter(item => Boolean(visits[item.id])).length;
+
+    let visibleWorkshops = events;
+    let visibleFairs = fairs;
+    if (this.feriasFilter === "talleres") {
+      visibleWorkshops = events.filter(e => e.kind === "taller");
+      visibleFairs = [];
+    } else if (this.feriasFilter === "ferias") {
+      visibleWorkshops = events.filter(e => e.kind === "feria");
+      visibleFairs = fairs;
+    } else if (this.feriasFilter === "confirmadas") {
+      visibleWorkshops = events.filter(e => Boolean(visits[e.id]));
+      visibleFairs = fairs.filter(f => Boolean(visits[f.id]));
+    }
+
+    const totalVisible = visibleWorkshops.length + visibleFairs.length;
 
     return `
       <div class="page-header">
         <div>
           <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700;">
-            Agenda Estatal de Encuentros Comerciales y Comunitarios
+            Agenda Estatal de Encuentros, Ferias y Talleres
           </div>
-          <h2 class="page-title">Ferias y Eventos de Zafra</h2>
-          <p class="page-subtitle">Espacios itinerantes de comercialización directa, vinculación comunitaria y exhibición juvenil</p>
+          <h2 class="page-title">Ferias y Talleres de Zafra</h2>
+          <p class="page-subtitle">Haz clic en cualquier feria o taller para abrir su mapa exacto, qué actividades incluye y confirmar tu visita</p>
         </div>
-        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">
-          12 ferias y mercados programados
+        <div class="catalog-count-badge">
+          ${all.length} encuentros · ${confirmedCount} confirmadas
         </div>
       </div>
 
-      <div class="fairs-events-grid">
-        ${fairs.map((fair, idx) => `
-          <div class="fair-event-card">
-            <div>
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
-                <span class="fair-num-badge">Evento ${idx + 1} · ${fair.type}</span>
-                <span style="font-size: 0.75rem; color: var(--brand-primary); font-weight: 600;">${fair.date}</span>
-              </div>
-              <h4 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
-                ${fair.name}
-              </h4>
-              <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-bottom: 10px;">
-                ${Icons.mapPin} ${fair.location}
-              </div>
-              <p style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: 14px;">
-                ${fair.focus}
-              </p>
-            </div>
-
-            <div style="padding-top: 10px; border-top: 1px solid var(--ui-divider); display: flex; align-items: center; justify-content: space-between;">
-              <span style="font-size: 0.75rem; color: var(--status-success); font-weight: 600;">Entrada Libre</span>
-              <button class="btn btn-secondary btn-sm fair-rsvp-btn" data-fair-name="${fair.name}">
-                Registrar Visita
-              </button>
-            </div>
-          </div>
-        `).join("")}
+      <div class="ferias-filter-bar">
+        <button type="button" class="filter-chip ferias-filter-chip ${this.feriasFilter === 'todos' ? 'active' : ''}" data-ferias-filter="todos">
+          Todos (${all.length})
+        </button>
+        <button type="button" class="filter-chip ferias-filter-chip ${this.feriasFilter === 'ferias' ? 'active' : ''}" data-ferias-filter="ferias">
+          Ferias y Mercados (${fairs.length + events.filter(e => e.kind === 'feria').length})
+        </button>
+        <button type="button" class="filter-chip ferias-filter-chip ${this.feriasFilter === 'talleres' ? 'active' : ''}" data-ferias-filter="talleres">
+          Talleres y Campo (${events.filter(e => e.kind === 'taller').length})
+        </button>
+        <button type="button" class="filter-chip ferias-filter-chip ${this.feriasFilter === 'confirmadas' ? 'active' : ''}" data-ferias-filter="confirmadas">
+          Mis visitas confirmadas (${confirmedCount})
+        </button>
       </div>
+
+      ${totalVisible === 0 ? `
+        <div class="catalog-empty-card">
+          <p>Aún no tienes visitas confirmadas. Selecciona cualquier feria o taller para ver su mapa y confirmar asistencia.</p>
+          <button type="button" class="btn btn-secondary btn-sm ferias-filter-chip" data-ferias-filter="todos">Ver todas las ferias y talleres</button>
+        </div>
+      ` : `
+        ${visibleWorkshops.length ? `
+          <div class="ferias-section-head">
+            <h3>Talleres, Experiencias y Feria Principal</h3>
+            <span>Toca una tarjeta para abrir su ubicación exacta</span>
+          </div>
+          <div class="fairs-events-grid">
+            ${visibleWorkshops.map(item => this.renderFairEventCard(item, visits[item.id])).join("")}
+          </div>
+        ` : ""}
+
+        ${visibleFairs.length ? `
+          <div class="ferias-section-head">
+            <h3>Agenda Estatal · 12 Ferias y Mercados de Zafra</h3>
+            <span>Mapa individual de sede + confirmación de visita</span>
+          </div>
+          <div class="fairs-events-grid">
+            ${visibleFairs.map(item => this.renderFairEventCard(item, visits[item.id])).join("")}
+          </div>
+        ` : ""}
+      `}
     `;
   }
 
@@ -3601,15 +4012,31 @@ class App {
       });
     }
 
-    // Fairs RSVP button
-    this.appEl.querySelectorAll(".fair-rsvp-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const fairName = btn.dataset.fairName;
-        btn.textContent = "✓ Asistencia Registrada";
-        btn.classList.add("btn-primary");
-        btn.classList.remove("btn-secondary");
-        this.showToast(`¡Visita registrada para ${fairName}! Te enviaremos recordatorio.`, "success");
+    // Ferias: filtros y apertura de mapa individual emergente + confirmación de visita
+    this.appEl.querySelectorAll(".ferias-filter-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        this.feriasFilter = chip.dataset.feriasFilter || "todos";
+        const container = document.getElementById("main-view");
+        if (container) container.innerHTML = this.renderConsumerEvents();
+        this.bindRoleViewEvents();
       });
+    });
+
+    this.appEl.querySelectorAll("[data-open-fair-id]").forEach(el => {
+      el.addEventListener("click", (e) => {
+        if (el.tagName === "BUTTON") e.stopPropagation();
+        const itemId = el.dataset.openFairId;
+        if (itemId) this.openFairLocationModal(itemId);
+      });
+      if (el.tagName !== "BUTTON") {
+        el.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            const itemId = el.dataset.openFairId;
+            if (itemId) this.openFairLocationModal(itemId);
+          }
+        });
+      }
     });
 
     const consumerChatForm = document.getElementById("consumer-chat-form");
@@ -4944,6 +5371,283 @@ class App {
     if (closeBtn) closeBtn.addEventListener("click", () => this.closeModal());
   }
 
+  renderFairVisitBox(item) {
+    const visits = store.getFairVisits();
+    const visit = visits[item.id];
+    const profile = store.getUserProfile();
+
+    if (visit) {
+      return `
+        <div class="fair-visit-confirmed-card">
+          <div class="fair-visit-confirmed-head">
+            <span class="fair-confirmed-badge">✓ Visita Confirmada</span>
+            <span class="fair-visit-folio">Folio: ${this.escapeHtml(visit.folio)}</span>
+          </div>
+          <div class="fair-visit-summary">
+            <div><strong>Asistente:</strong> ${this.escapeHtml(visit.visitorName)}</div>
+            <div><strong>Lugares reservados:</strong> ${visit.attendees} ${Number(visit.attendees) === 1 ? "persona" : "personas"}</div>
+            <div><strong>Sede:</strong> ${this.escapeHtml(item.location)} (${this.escapeHtml(item.municipality || "Morelos")})</div>
+            <div><strong>Fecha:</strong> ${this.escapeHtml(item.date)}</div>
+            ${visit.note ? `<div><strong>Interés:</strong> ${this.escapeHtml(visit.note)}</div>` : ""}
+          </div>
+          <div class="fair-visit-confirmed-actions">
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-cancel-fair-visit" style="color: var(--earth-accent);">
+              Cancelar confirmación
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <form id="fair-visit-form" class="fair-visit-form">
+        <div class="fair-visit-form-title">Confirmar tu visita</div>
+        <div class="fair-visit-fields-row">
+          <div class="fair-visit-field">
+            <label for="fair-visitor-name">Tu nombre</label>
+            <input
+              type="text"
+              id="fair-visitor-name"
+              name="visitorName"
+              value="${this.escapeHtml(profile.name || "Visitante Zafra")}"
+              required
+            />
+          </div>
+          <div class="fair-visit-field fair-visit-field-sm">
+            <label for="fair-visit-attendees">Asistentes</label>
+            <select id="fair-visit-attendees" name="attendees">
+              <option value="1">1 persona</option>
+              <option value="2">2 personas</option>
+              <option value="3">3 personas</option>
+              <option value="4">4+ personas</option>
+            </select>
+          </div>
+        </div>
+        <div class="fair-visit-field">
+          <label for="fair-visit-note">¿Qué taller o producto te interesa? (opcional)</label>
+          <input
+            type="text"
+            id="fair-visit-note"
+            name="note"
+            placeholder="Ej. Taller de huerto, degustación o entrega de pedido"
+          />
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="btn-confirm-fair-visit">
+          Confirmar visita y generar pase
+        </button>
+      </form>
+    `;
+  }
+
+  bindFairVisitEvents(item) {
+    const form = document.getElementById("fair-visit-form");
+    if (form) {
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const fd = new FormData(form);
+        const visitorName = String(fd.get("visitorName") || "").trim() || "Visitante Zafra";
+        const attendees = Number(fd.get("attendees") || 1);
+        const note = String(fd.get("note") || "").trim();
+        const folio = `ZAF-${item.id.toUpperCase()}-${String(1000 + Math.floor(Math.random() * 9000))}`;
+
+        store.saveFairVisit(item.id, {
+          itemId: item.id,
+          title: item.displayName,
+          folio,
+          visitorName,
+          attendees,
+          note,
+          confirmedAt: new Date().toLocaleDateString("es-MX")
+        });
+
+        const box = document.getElementById("fair-visit-box");
+        if (box) {
+          box.innerHTML = this.renderFairVisitBox(item);
+          this.bindFairVisitEvents(item);
+        }
+
+        if (this.currentRole === "consumidor" && this.consumerTab === "ferias") {
+          const container = document.getElementById("main-view");
+          if (container) container.innerHTML = this.renderConsumerEvents();
+          this.bindRoleViewEvents();
+        }
+
+        this.showToast(`¡Visita confirmada para ${item.displayName}! Folio: ${folio}`, "success");
+      });
+    }
+
+    const cancelBtn = document.getElementById("btn-cancel-fair-visit");
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", () => {
+        store.removeFairVisit(item.id);
+        const box = document.getElementById("fair-visit-box");
+        if (box) {
+          box.innerHTML = this.renderFairVisitBox(item);
+          this.bindFairVisitEvents(item);
+        }
+
+        if (this.currentRole === "consumidor" && this.consumerTab === "ferias") {
+          const container = document.getElementById("main-view");
+          if (container) container.innerHTML = this.renderConsumerEvents();
+          this.bindRoleViewEvents();
+        }
+
+        this.showToast("Confirmación de visita cancelada", "info");
+      });
+    }
+  }
+
+  initFairModalMap(item) {
+    if (this.fairModalMap) {
+      try { this.fairModalMap.remove(); } catch (e) {}
+      this.fairModalMap = null;
+    }
+    const mapEl = document.getElementById("fair-modal-map");
+    if (!mapEl || typeof L === "undefined") return;
+
+    const lat = Number(item.lat) || 18.8122;
+    const lng = Number(item.lng) || -98.9556;
+
+    this.fairModalMap = L.map(mapEl, {
+      zoomControl: true,
+      scrollWheelZoom: false
+    }).setView([lat, lng], 15);
+
+    const topoLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
+      maxZoom: 18,
+      attribution: "Esri World Topo Map"
+    });
+    if (topoLayer && typeof topoLayer.on === "function") {
+      topoLayer.on("tileerror", () => {
+        if (!this.fairModalMap) return;
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 18,
+          attribution: "OpenStreetMap"
+        }).addTo(this.fairModalMap);
+      });
+    }
+    topoLayer.addTo(this.fairModalMap);
+
+    const pinIcon = L.divIcon({
+      className: "fair-pin-icon-host",
+      html: `<div class="fair-modal-pin"><span>📍</span></div>`,
+      iconSize: [34, 34],
+      iconAnchor: [17, 30]
+    });
+
+    const marker = L.marker([lat, lng], { icon: pinIcon }).addTo(this.fairModalMap);
+    const popupHtml = `
+      <div class="fair-map-popup">
+        <strong>${this.escapeHtml(item.displayName)}</strong>
+        <div>${this.escapeHtml(item.location)}</div>
+        <small>${this.escapeHtml(item.address || item.municipality || "Morelos")}</small>
+      </div>
+    `;
+    marker.bindPopup(popupHtml);
+    if (typeof marker.openPopup === "function") marker.openPopup();
+
+    const refreshSize = () => {
+      if (this.fairModalMap) this.fairModalMap.invalidateSize();
+    };
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(refreshSize);
+    }
+    setTimeout(refreshSize, 160);
+
+    const recenterBtn = document.getElementById("btn-recenter-fair-map");
+    if (recenterBtn) {
+      recenterBtn.addEventListener("click", () => {
+        if (this.fairModalMap) {
+          this.fairModalMap.setView([lat, lng], 15);
+          if (typeof marker.openPopup === "function") marker.openPopup();
+        }
+      });
+    }
+  }
+
+  openFairLocationModal(itemId) {
+    const item = this.findFairOrWorkshop(itemId);
+    if (!item || !this.modalRoot) return;
+
+    const lat = Number(item.lat) || 18.8122;
+    const lng = Number(item.lng) || -98.9556;
+    const workshops = Array.isArray(item.workshops) ? item.workshops : [];
+    const mapsExternalUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${lat},${lng}`)}`;
+
+    this.modalRoot.innerHTML = `
+      <div class="modal-overlay" id="modal-bg">
+        <div class="modal-dialog fair-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="fair-modal-title">
+          <div class="modal-dialog-header">
+            <div>
+              <div class="fair-modal-kicker">
+                <span class="fair-num-badge" style="margin-bottom: 0;">${this.escapeHtml(item.shortType)}</span>
+                <span>${this.escapeHtml(item.municipality || "Morelos")}</span>
+              </div>
+              <h3 class="modal-dialog-title" id="fair-modal-title">${this.escapeHtml(item.displayName)}</h3>
+            </div>
+            <button type="button" class="modal-dismiss-btn" id="close-modal-x" aria-label="Cerrar ventana">&times;</button>
+          </div>
+
+          <div class="modal-dialog-body fair-modal-body">
+            <div class="fair-modal-grid">
+              <div class="fair-modal-map-col">
+                <div class="fair-modal-map-header">
+                  <span>Ubicación exacta de la sede</span>
+                  <small>${lat.toFixed(4)}, ${lng.toFixed(4)}</small>
+                </div>
+                <div id="fair-modal-map" class="fair-modal-map" aria-label="Mapa de ubicación de ${this.escapeHtml(item.displayName)}"></div>
+                <div class="fair-modal-map-actions">
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-recenter-fair-map">
+                    Centrar ubicación
+                  </button>
+                  <a href="${mapsExternalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">
+                    Abrir en Google Maps ↗
+                  </a>
+                </div>
+                <div class="fair-modal-address-box">
+                  <strong>${this.escapeHtml(item.location)}</strong>
+                  <span>${this.escapeHtml(item.address || `${item.municipality || "Morelos"}, México`)}</span>
+                </div>
+              </div>
+
+              <div class="fair-modal-info-col">
+                <div class="fair-modal-what-box">
+                  <div class="fair-modal-section-label">¿De qué es este evento / taller?</div>
+                  <p class="fair-modal-description">${this.escapeHtml(item.whatItIs)}</p>
+
+                  <div class="fair-modal-facts">
+                    <div><span>Fecha:</span> <strong>${this.escapeHtml(item.date)}</strong></div>
+                    ${item.schedule ? `<div><span>Horario:</span> <strong>${this.escapeHtml(item.schedule)}</strong></div>` : ""}
+                    <div><span>Organiza / Imparte:</span> <strong>${this.escapeHtml(item.organizer)}</strong></div>
+                    <div><span>Acceso / Cuota:</span> <strong>${this.escapeHtml(item.costLabel)}</strong></div>
+                    ${item.capacity ? `<div><span>Cupo:</span> <strong>${item.bookedCount || 0} / ${item.capacity} lugares</strong></div>` : ""}
+                  </div>
+
+                  ${workshops.length ? `
+                    <div class="fair-modal-workshops">
+                      <div class="fair-modal-section-label" style="margin-bottom: 6px;">Actividades y talleres incluidos</div>
+                      <div class="fair-card-workshops">
+                        ${workshops.map(w => `<span class="fair-mini-chip">${this.escapeHtml(w)}</span>`).join("")}
+                      </div>
+                    </div>
+                  ` : ""}
+                </div>
+
+                <div id="fair-visit-box" class="fair-visit-box">
+                  ${this.renderFairVisitBox(item)}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    this.bindModalClose();
+    this.bindFairVisitEvents(item);
+    this.initFairModalMap(item);
+  }
+
   bindModalClose() {
     const bg = document.getElementById("modal-bg");
     const closeX = document.getElementById("close-modal-x");
@@ -4958,6 +5662,10 @@ class App {
   }
 
   closeModal() {
+    if (this.fairModalMap) {
+      try { this.fairModalMap.remove(); } catch (e) {}
+      this.fairModalMap = null;
+    }
     this.modalRoot.innerHTML = "";
   }
 }

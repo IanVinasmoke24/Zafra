@@ -1308,6 +1308,388 @@ img { max-width: 100%; }
   margin-bottom: 14px;
 }
 
+/* Ferias y Talleres: tarjetas clicables y modal individual con mapa + confirmacion */
+.ferias-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.ferias-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--ui-divider);
+}
+
+.ferias-section-head h3 {
+  font-family: var(--font-heading);
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.ferias-section-head span {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.fair-clickable-card {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fair-clickable-card:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.fair-clickable-card.is-confirmed {
+  border-color: var(--brand-primary);
+  background: linear-gradient(180deg, var(--brand-surface-tint) 0%, var(--ui-surface) 38%);
+}
+
+.fair-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.fair-date-tag {
+  font-size: 0.75rem;
+  color: var(--brand-primary);
+  font-weight: 600;
+  text-align: right;
+}
+
+.fair-card-title {
+  font-family: var(--font-heading);
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.fair-card-loc {
+  font-size: 0.79rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.fair-card-desc {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+
+.fair-card-workshops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.fair-mini-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.fair-card-footer {
+  padding-top: 10px;
+  border-top: 1px solid var(--ui-divider);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fair-cost-badge {
+  font-size: 0.76rem;
+  color: var(--status-success);
+  font-weight: 700;
+}
+
+.fair-confirmed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--brand-surface-tint);
+  border: 1px solid var(--brand-subtle);
+  color: var(--brand-primary-dark);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.fair-modal-dialog {
+  max-width: 820px;
+  width: calc(100vw - 24px);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.fair-modal-body {
+  overflow-y: auto;
+}
+
+.fair-modal-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.fair-modal-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.fair-modal-map-col,
+.fair-modal-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.fair-modal-map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.fair-modal-map {
+  height: 270px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--ui-border-strong);
+  overflow: hidden;
+  background: var(--ui-surface-subtle);
+  z-index: 1;
+}
+
+.fair-pin-icon-host {
+  background: transparent;
+  border: none;
+}
+
+.fair-modal-pin {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--brand-primary);
+  border: 2px solid #ffffff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.fair-map-popup {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.fair-map-popup strong {
+  display: block;
+  color: var(--brand-primary-dark);
+  margin-bottom: 2px;
+}
+
+.fair-modal-map-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fair-modal-address-box {
+  padding: 10px 12px;
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.82rem;
+}
+
+.fair-modal-address-box strong {
+  color: var(--text-main);
+}
+
+.fair-modal-address-box span {
+  color: var(--text-secondary);
+}
+
+.fair-modal-what-box {
+  padding: 12px 14px;
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+}
+
+.fair-modal-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--brand-primary);
+  margin-bottom: 6px;
+}
+
+.fair-modal-description {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+.fair-modal-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.81rem;
+  color: var(--text-secondary);
+  padding-top: 8px;
+  border-top: 1px solid var(--ui-divider);
+}
+
+.fair-modal-facts span {
+  color: var(--text-muted);
+}
+
+.fair-modal-workshops {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ui-divider);
+}
+
+.fair-visit-box {
+  padding: 14px;
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 8px;
+}
+
+.fair-visit-form-title {
+  font-family: var(--font-heading);
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+.fair-visit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fair-visit-fields-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 8px;
+}
+
+.fair-visit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fair-visit-field label {
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.fair-visit-field input,
+.fair-visit-field select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--ui-border-strong);
+  background: var(--ui-bg);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.84rem;
+}
+
+.fair-visit-confirmed-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--brand-surface-tint);
+  border: 1px solid var(--brand-subtle);
+}
+
+.fair-visit-confirmed-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fair-visit-folio {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.fair-visit-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.82rem;
+  color: var(--text-main);
+}
+
+.fair-visit-confirmed-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
 @media (max-width: 960px) {
   .catalog-controls-bar {
     grid-template-columns: 1fr auto;
@@ -1329,6 +1711,20 @@ img { max-width: 100%; }
   .catalog-drawer-btn {
     width: 100%;
     min-height: 40px;
+  }
+  .fair-modal-dialog {
+    width: calc(100vw - 12px);
+    max-height: 94vh;
+  }
+  .fair-modal-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .fair-modal-map {
+    height: 215px;
+  }
+  .fair-visit-fields-row {
+    grid-template-columns: 1fr;
   }
   .admin-settings-grid {
     grid-template-columns: 1fr;
